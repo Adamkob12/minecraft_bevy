@@ -17,7 +17,7 @@ fn main() {
     app.init_resource::<BlockRegistry>();
 
     app.insert_resource(AmbientLight {
-        brightness: 0.8,
+        brightness: 0.5,
         color: Color::WHITE,
     });
 
