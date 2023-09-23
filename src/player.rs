@@ -1,3 +1,11 @@
+// CREDIT TO bevy_flycam
+// ~~~~~~~~~~~~~~~~~~~
+// I copied this code because the 0.11 port wasn't on crates.io
+// this code was taken from:
+//          https://github.com/sburris0/bevy_flycam/tree/bevy_0.11
+// ~~~~~~~~~~~~~~~~~~~
+use crate::chunk::{LENGTH, WIDTH};
+use crate::RENDER_DISTANCE;
 use bevy::ecs::event::{Events, ManualEventReader};
 use bevy::input::mouse::MouseMotion;
 use bevy::prelude::*;
@@ -24,7 +32,7 @@ impl Default for MovementSettings {
     fn default() -> Self {
         Self {
             sensitivity: 0.00012,
-            speed: 12.,
+            speed: 18.,
         }
     }
 }
@@ -60,6 +68,9 @@ impl Default for KeyBindings {
 #[derive(Component)]
 pub struct FlyCam;
 
+#[derive(Component)]
+pub struct CurrentChunk(pub [i32; 2]);
+
 /// Grabs/ungrabs mouse cursor
 fn toggle_grab_cursor(window: &mut Window) {
     match window.cursor.grab_mode {
@@ -87,10 +98,16 @@ fn initial_grab_cursor(mut primary_window: Query<&mut Window, With<PrimaryWindow
 fn setup_player(mut commands: Commands) {
     commands.spawn((
         Camera3dBundle {
-            transform: Transform::from_xyz(-2.0, 50.0, 5.0).looking_at(Vec3::ZERO, Vec3::Y),
+            transform: Transform::from_xyz(
+                // -RENDER_DISTANCE as f32 * WIDTH as f32,
+                0.0, 650.0, // -RENDER_DISTANCE as f32 * LENGTH as f32,
+                0.0,
+            )
+            .looking_to(Vec3::new(0.0, -0.1, 0.0), Vec3::Y),
             ..Default::default()
         },
         FlyCam,
+        CurrentChunk([0, 0]),
     ));
 }
 
@@ -101,10 +118,10 @@ fn player_move(
     primary_window: Query<&Window, With<PrimaryWindow>>,
     settings: Res<MovementSettings>,
     key_bindings: Res<KeyBindings>,
-    mut query: Query<(&FlyCam, &mut Transform)>, //    mut query: Query<&mut Transform, With<FlyCam>>,
+    mut query: Query<(&FlyCam, &mut Transform, &mut CurrentChunk)>, //    mut query: Query<&mut Transform, With<FlyCam>>,
 ) {
     if let Ok(window) = primary_window.get_single() {
-        for (_camera, mut transform) in query.iter_mut() {
+        for (_camera, mut transform, mut chunk) in query.iter_mut() {
             let mut velocity = Vec3::ZERO;
             let local_z = transform.local_z();
             let forward = -Vec3::new(local_z.x, 0., local_z.z);
@@ -134,6 +151,15 @@ fn player_move(
                 velocity = velocity.normalize_or_zero();
 
                 transform.translation += velocity * time.delta_seconds() * settings.speed
+            }
+            let t = transform.translation;
+            // find the current chunk we are in
+            let tmp = [
+                (t.x / WIDTH as f32 + (t.x.signum() - 1.0) / 2.0) as i32,
+                (t.z / LENGTH as f32 + (t.z.signum() - 1.0) / 2.0) as i32,
+            ];
+            if tmp != chunk.0 {
+                chunk.0 = tmp;
             }
         }
     } else {

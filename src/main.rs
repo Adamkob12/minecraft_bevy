@@ -11,16 +11,18 @@ use chunk::*;
 use chunk_queue::*;
 use futures_lite::future;
 use noise::{NoiseFn, Perlin, Seedable};
-use player::PlayerPlugin;
 use player::*;
-use std::rc::Rc;
+use std::sync::Arc;
 
 const FACTOR: usize = CHUNK_DIMS.0;
-pub const RENDER_DISTANCE: i32 = 3;
+pub const RENDER_DISTANCE: i32 = 16;
 pub const GEN_SEED: u32 = 5;
 
 #[derive(Resource, Clone)]
 pub struct BlockMaterial(Handle<StandardMaterial>);
+
+#[derive(Component)]
+pub struct VertexCount(usize);
 
 fn main() {
     let mut app = App::new();
@@ -36,8 +38,9 @@ fn main() {
     });
 
     app.add_systems(PreStartup, setup);
-    app.add_systems(PreStartup, frame_chunk_update);
+    app.add_systems(Update, frame_chunk_update);
     app.add_systems(Update, handle_tasks);
+    app.add_systems(PostUpdate, spawn_and_despawn_chunks);
 
     app.run();
 }
@@ -48,7 +51,6 @@ fn setup(
     mut materials: ResMut<Assets<StandardMaterial>>,
     meshes: ResMut<Assets<Mesh>>,
     asset_server: Res<AssetServer>,
-    mut chunk_queue: ResMut<ChunkQueue>,
 ) {
     let noise = Perlin::new(GEN_SEED);
     let texture_handle: Handle<Image> = asset_server.load("UV_map_example.png");
@@ -57,13 +59,7 @@ fn setup(
         ..default()
     });
     commands.insert_resource(BlockMaterial(mat));
-
-    for x in (-RENDER_DISTANCE)..RENDER_DISTANCE + 1 {
-        for z in (-RENDER_DISTANCE)..RENDER_DISTANCE + 1 {
-            chunk_queue.queue_spawn([x, z]);
-        }
-    }
-    // chunk_queue.queue_spawn([0, 0]);
+    commands.spawn(VertexCount(0));
 }
 
 fn frame_chunk_update(
@@ -72,7 +68,41 @@ fn frame_chunk_update(
     breg: Res<BlockRegistry>,
     commands: Commands,
 ) {
-    cq.dequeue_all(commands, breg.into_inner().clone(), cm.into_inner());
+    cq.dequeue_all(
+        commands,
+        Arc::new(breg.into_inner().clone()),
+        cm.into_inner(),
+    );
+}
+
+fn spawn_and_despawn_chunks(
+    q2: Query<(&CurrentChunk, &Transform), Changed<CurrentChunk>>,
+    mut chunk_queue: ResMut<ChunkQueue>,
+    chunk_map: Res<ChunkMap>,
+) {
+    for (j, t) in q2.iter() {
+        let cords = j.0;
+        for chunk in chunk_map.iter_keys() {
+            if (chunk[0] - cords[0]).abs() > RENDER_DISTANCE {
+                chunk_queue.queue_despawn(*chunk);
+            }
+            if (chunk[1] - cords[1]).abs() > RENDER_DISTANCE {
+                chunk_queue.queue_despawn(*chunk);
+            }
+        }
+
+        // for u in -RENDER_DISTANCE + 1..=RENDER_DISTANCE {
+        //     chunk_queue.queue_spawn([cords[0] + RENDER_DISTANCE, cords[1] + u]);
+        //     chunk_queue.queue_spawn([cords[0] - RENDER_DISTANCE, cords[1] + u]);
+        //     chunk_queue.queue_spawn([cords[0] + u, cords[1] + RENDER_DISTANCE]);
+        //     chunk_queue.queue_spawn([cords[0] + u, cords[1] - RENDER_DISTANCE]);
+        // }
+        for u in -RENDER_DISTANCE..=RENDER_DISTANCE {
+            for v in -RENDER_DISTANCE..=RENDER_DISTANCE {
+                chunk_queue.queue_spawn([cords[0] + u, cords[1] + v]);
+            }
+        }
+    }
 }
 
 fn handle_tasks(
@@ -81,12 +111,25 @@ fn handle_tasks(
     mat: Res<BlockMaterial>,
     mut meshes: ResMut<Assets<Mesh>>,
     mut chunk_map: ResMut<ChunkMap>,
+    current_chunk: Query<&CurrentChunk>,
 ) {
+    let cc = current_chunk
+        .get_single()
+        .expect("Couldn't find CurrentChunk component, which the player should always have.")
+        .0;
     let mat = mat.into_inner().to_owned();
     for (entity, mut task) in transform_tasks.iter_mut() {
         if let Some(Some(((culled_mesh, metadata), grid, cords))) =
             future::block_on(future::poll_once(&mut task.0))
         {
+            commands.entity(entity).remove::<ComputeChunk>();
+            if (cc[0] - cords[0]).abs() > RENDER_DISTANCE {
+                continue;
+            }
+            if (cc[1] - cords[1]).abs() > RENDER_DISTANCE {
+                continue;
+            }
+
             let culled_mesh_handle = meshes.add(culled_mesh);
             let ent = commands
                 .spawn((
@@ -101,14 +144,13 @@ fn handle_tasks(
                         ..default()
                     },
                     Chunk {
-                        compressed_chunk: rle_compress(&grid),
+                        compressed_chunk: vec![(0, 0)],
                         cords,
                         meta_data: metadata,
                     },
                 ))
                 .id();
             chunk_map.insert_ent(cords, ent);
-            commands.entity(entity).remove::<ComputeChunk>();
         }
     }
 }

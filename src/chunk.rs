@@ -2,9 +2,13 @@ use crate::block_reg::{Block, AIR, DIRT, GRASS, STONE};
 use bevy::prelude::Component;
 use bevy_meshem::prelude::{Dimensions, MeshMD};
 use noise::{NoiseFn, Perlin, Seedable};
-pub const CHUNK_DIMS: Dimensions = (32, 32, 32);
+const CHUNK_SIZE: usize = 16;
+pub const CHUNK_DIMS: Dimensions = (CHUNK_SIZE, CHUNK_SIZE, CHUNK_SIZE);
+pub const HEIGHT: usize = CHUNK_DIMS.2;
+pub const WIDTH: usize = CHUNK_DIMS.0;
+pub const LENGTH: usize = CHUNK_DIMS.1;
 pub const CHUNK_LEN: usize = CHUNK_DIMS.0 * CHUNK_DIMS.1 * CHUNK_DIMS.2;
-const NOISE_FACTOR_CONT: f64 = 0.01;
+const NOISE_FACTOR_CONT: f64 = 0.015;
 // has to be greater than 1.0
 const NOISE_FACTOR_SCALE: f64 = 2.0;
 
