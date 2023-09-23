@@ -7,6 +7,6 @@ edition = "2021"
 
 [dependencies]
 bevy = "0.11.0"
-bevy_meshem = "0.2.0"
+bevy_meshem = "0.2.1"
 futures-lite = "1.13.0"
 noise = "0.8.2"

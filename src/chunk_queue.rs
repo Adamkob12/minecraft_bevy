@@ -71,12 +71,10 @@ impl ChunkQueue {
             let breg = Arc::clone(&breg);
             let cords = chunk.0.clone();
             let task = thread_pool.spawn(async move {
-                println!("doing stuff");
                 let grid = generate_chunk(cords, &noise);
                 let t = mesh_grid(CHUNK_DIMS, grid.to_vec(), &*breg, MeshingAlgorithm::Culling)?;
                 Some((t, grid, cords))
             });
-            println!("did stuff?");
 
             commands.spawn(ComputeChunk(task));
         }

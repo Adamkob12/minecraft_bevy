@@ -4,7 +4,9 @@ use bevy_meshem::prelude::{Dimensions, MeshMD};
 use noise::{NoiseFn, Perlin, Seedable};
 pub const CHUNK_DIMS: Dimensions = (32, 32, 32);
 pub const CHUNK_LEN: usize = CHUNK_DIMS.0 * CHUNK_DIMS.1 * CHUNK_DIMS.2;
-const NOISE_FACTOR: f64 = 0.02;
+const NOISE_FACTOR_CONT: f64 = 0.01;
+// has to be greater than 1.0
+const NOISE_FACTOR_SCALE: f64 = 2.0;
 
 #[derive(Component)]
 pub struct Chunk {
@@ -18,12 +20,13 @@ pub fn generate_chunk(cords: [i32; 2], noise: &impl NoiseFn<f64, 2>) -> [u16; CH
     let mut chunk = [0; CHUNK_LEN];
     for j in 0..CHUNK_DIMS.1 {
         for i in 0..CHUNK_DIMS.0 {
-            height_map[i + j * CHUNK_DIMS.0] = CHUNK_DIMS.2 / 2
+            height_map[i + j * CHUNK_DIMS.0] = (CHUNK_DIMS.2 as f64 * 1.0 / NOISE_FACTOR_SCALE
                 + (noise.get([
-                    ((i as i32 + cords[0] * CHUNK_DIMS.0 as i32) as f64 + 0.5) * NOISE_FACTOR,
-                    ((j as i32 + cords[1] * CHUNK_DIMS.1 as i32) as f64 + 0.5) * NOISE_FACTOR,
+                    ((i as i32 + cords[0] * CHUNK_DIMS.0 as i32) as f64 + 0.5) * NOISE_FACTOR_CONT,
+                    ((j as i32 + cords[1] * CHUNK_DIMS.1 as i32) as f64 + 0.5) * NOISE_FACTOR_CONT,
                 ]) * CHUNK_DIMS.2 as f64
-                    * 0.5) as usize;
+                    * (1.0 - 1.0 / NOISE_FACTOR_SCALE)))
+                as usize;
         }
     }
     for y in 0..CHUNK_DIMS.2 {

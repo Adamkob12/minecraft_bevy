@@ -11,11 +11,12 @@ use chunk::*;
 use chunk_queue::*;
 use futures_lite::future;
 use noise::{NoiseFn, Perlin, Seedable};
+use player::PlayerPlugin;
 use player::*;
 use std::rc::Rc;
 
 const FACTOR: usize = CHUNK_DIMS.0;
-pub const RENDER_DISTANCE: i32 = 5;
+pub const RENDER_DISTANCE: i32 = 3;
 pub const GEN_SEED: u32 = 5;
 
 #[derive(Resource, Clone)]
@@ -23,7 +24,8 @@ pub struct BlockMaterial(Handle<StandardMaterial>);
 
 fn main() {
     let mut app = App::new();
-    app.add_plugins(DefaultPlugins);
+    app.add_plugins(DefaultPlugins.set(ImagePlugin::default_nearest()));
+    app.add_plugins(PlayerPlugin);
     app.init_resource::<BlockRegistry>();
     app.init_resource::<ChunkMap>();
     app.init_resource::<ChunkQueue>();
@@ -62,37 +64,6 @@ fn setup(
         }
     }
     // chunk_queue.queue_spawn([0, 0]);
-
-    let camera_and_light_transform = Transform::from_xyz(
-        FACTOR as f32 * 1.7,
-        FACTOR as f32 * 1.7,
-        FACTOR as f32 * 1.7,
-    )
-    .looking_at(
-        Vec3::new(
-            FACTOR as f32 * 0.5,
-            FACTOR as f32 * 0.5,
-            FACTOR as f32 * 0.5,
-        ),
-        Vec3::Y,
-    );
-
-    // Camera in 3D space.
-    commands.spawn(Camera3dBundle {
-        transform: camera_and_light_transform,
-        ..default()
-    });
-
-    // Light up the scene.
-    commands.spawn(PointLightBundle {
-        point_light: PointLight {
-            intensity: 9000.0,
-            range: 1000.0,
-            ..default()
-        },
-        transform: camera_and_light_transform,
-        ..default()
-    });
 }
 
 fn frame_chunk_update(
@@ -113,11 +84,9 @@ fn handle_tasks(
 ) {
     let mat = mat.into_inner().to_owned();
     for (entity, mut task) in transform_tasks.iter_mut() {
-        println!("S");
         if let Some(Some(((culled_mesh, metadata), grid, cords))) =
             future::block_on(future::poll_once(&mut task.0))
         {
-            print!("SS\n");
             let culled_mesh_handle = meshes.add(culled_mesh);
             let ent = commands
                 .spawn((
