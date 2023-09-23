@@ -2,12 +2,14 @@ use bevy::prelude::*;
 use bevy::render::mesh::{Mesh, MeshVertexAttribute};
 use bevy_meshem::prelude::*;
 
-pub const AIR: u16 = 0;
-pub const DIRT: u16 = 1;
-pub const GRASS: u16 = 2;
-pub const STONE: u16 = 3;
+pub type Block = u16;
 
-#[derive(Resource)]
+pub const AIR: Block = 0;
+pub const DIRT: Block = 1;
+pub const GRASS: Block = 2;
+pub const STONE: Block = 3;
+
+#[derive(Resource, Clone)]
 pub struct BlockRegistry {
     grass_block: Mesh,
     dirt_block: Mesh,
@@ -58,7 +60,7 @@ impl Default for BlockRegistry {
 }
 
 impl VoxelRegistry for BlockRegistry {
-    type Voxel = u16;
+    type Voxel = Block;
 
     fn all_attributes(&self) -> Vec<MeshVertexAttribute> {
         vec![
