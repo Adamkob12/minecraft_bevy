@@ -1,6 +1,6 @@
 use crate::block_reg::{Block, AIR, DIRT, GRASS, STONE};
 use bevy::prelude::Component;
-use bevy_meshem::prelude::{Dimensions, MeshMD};
+use bevy_meshem::prelude::*;
 use noise::{NoiseFn, Perlin, Seedable};
 const CHUNK_SIZE: usize = 16;
 pub const CHUNK_DIMS: Dimensions = (CHUNK_SIZE, CHUNK_SIZE, CHUNK_SIZE);
@@ -8,16 +8,25 @@ pub const HEIGHT: usize = CHUNK_DIMS.2;
 pub const WIDTH: usize = CHUNK_DIMS.0;
 pub const LENGTH: usize = CHUNK_DIMS.1;
 pub const CHUNK_LEN: usize = CHUNK_DIMS.0 * CHUNK_DIMS.1 * CHUNK_DIMS.2;
-const NOISE_FACTOR_CONT: f64 = 0.015;
+const NOISE_FACTOR_CONT: f64 = 0.020;
 // has to be greater than 1.0
-const NOISE_FACTOR_SCALE: f64 = 2.0;
+const NOISE_FACTOR_SCALE: f64 = 1.8;
 
 #[derive(Component)]
 pub struct Chunk {
     pub meta_data: MeshMD<Block>,
     pub cords: [i32; 2],
-    pub compressed_chunk: Vec<(Block, usize)>,
+    // pub compressed_chunk: Vec<(Block, usize)>,
+    pub grid: [Block; CHUNK_LEN],
 }
+
+#[derive(Component)]
+pub struct BlockChangeQueue {
+    pub block_queue: Vec<([usize; 3], VoxelChange)>,
+}
+
+#[derive(Component)]
+pub struct ChunkCloseToPlayer;
 
 pub fn generate_chunk(cords: [i32; 2], noise: &impl NoiseFn<f64, 2>) -> [u16; CHUNK_LEN] {
     let mut height_map: [usize; CHUNK_DIMS.0 * CHUNK_DIMS.1] = [0; CHUNK_DIMS.0 * CHUNK_DIMS.1];
@@ -38,7 +47,7 @@ pub fn generate_chunk(cords: [i32; 2], noise: &impl NoiseFn<f64, 2>) -> [u16; CH
             for x in 0..CHUNK_DIMS.0 {
                 if height_map[x + z * CHUNK_DIMS.0] < y {
                     chunk[x + z * CHUNK_DIMS.0 + y * CHUNK_DIMS.0 * CHUNK_DIMS.1] = AIR;
-                } else if height_map[x + z * CHUNK_DIMS.0] == y {
+                } else if height_map[x + z * CHUNK_DIMS.0] == y && y > HEIGHT / 4 {
                     chunk[x + z * CHUNK_DIMS.0 + y * CHUNK_DIMS.0 * CHUNK_DIMS.1] = GRASS;
                 } else {
                     chunk[x + z * CHUNK_DIMS.0 + y * CHUNK_DIMS.0 * CHUNK_DIMS.1] = DIRT;

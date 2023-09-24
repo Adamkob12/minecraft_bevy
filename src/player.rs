@@ -4,11 +4,10 @@
 // this code was taken from:
 //          https://github.com/sburris0/bevy_flycam/tree/bevy_0.11
 // ~~~~~~~~~~~~~~~~~~~
-use crate::chunk::{LENGTH, WIDTH};
-use crate::RENDER_DISTANCE;
+use crate::utils::position_to_chunk;
+use crate::*;
 use bevy::ecs::event::{Events, ManualEventReader};
 use bevy::input::mouse::MouseMotion;
-use bevy::prelude::*;
 use bevy::window::{CursorGrabMode, PrimaryWindow};
 
 pub mod prelude {
@@ -100,10 +99,11 @@ fn setup_player(mut commands: Commands) {
         Camera3dBundle {
             transform: Transform::from_xyz(
                 // -RENDER_DISTANCE as f32 * WIDTH as f32,
-                0.0, 650.0, // -RENDER_DISTANCE as f32 * LENGTH as f32,
+                0.0,
+                HEIGHT as f32 * 2.0, // -RENDER_DISTANCE as f32 * LENGTH as f32,
                 0.0,
             )
-            .looking_to(Vec3::new(0.0, -0.1, 0.0), Vec3::Y),
+            .looking_to(Vec3::new(5.0, -1.0, 5.0), Vec3::Y),
             ..Default::default()
         },
         FlyCam,
@@ -154,10 +154,7 @@ fn player_move(
             }
             let t = transform.translation;
             // find the current chunk we are in
-            let tmp = [
-                (t.x / WIDTH as f32 + (t.x.signum() - 1.0) / 2.0) as i32,
-                (t.z / LENGTH as f32 + (t.z.signum() - 1.0) / 2.0) as i32,
-            ];
+            let tmp = position_to_chunk(t, CHUNK_DIMS);
             if tmp != chunk.0 {
                 chunk.0 = tmp;
             }
@@ -240,9 +237,11 @@ impl Plugin for PlayerPlugin {
             .init_resource::<KeyBindings>()
             .add_systems(Startup, setup_player)
             .add_systems(Startup, initial_grab_cursor)
-            .add_systems(Update, player_move)
-            .add_systems(Update, player_look)
-            .add_systems(Update, cursor_grab);
+            .add_systems(
+                Update,
+                (player_move, player_look, cursor_grab)
+                    .run_if(in_state(InitialChunkLoadState::Complete)),
+            );
     }
 }
 

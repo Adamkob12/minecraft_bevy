@@ -9,6 +9,8 @@ pub const DIRT: Block = 1;
 pub const GRASS: Block = 2;
 pub const STONE: Block = 3;
 
+pub const VOXEL_DIMS: [f32; 3] = [1.0, 1.0, 1.0];
+
 #[derive(Resource, Clone)]
 pub struct BlockRegistry {
     grass_block: Mesh,
@@ -20,7 +22,7 @@ impl Default for BlockRegistry {
     fn default() -> Self {
         BlockRegistry {
             grass_block: generate_voxel_mesh(
-                [1.0, 1.0, 1.0],
+                VOXEL_DIMS,
                 [4, 4],
                 [
                     (Top, [0, 0]),
@@ -32,7 +34,7 @@ impl Default for BlockRegistry {
                 ],
             ),
             dirt_block: generate_voxel_mesh(
-                [1.0, 1.0, 1.0],
+                VOXEL_DIMS,
                 [4, 4],
                 [
                     (Top, [2, 0]),
@@ -44,7 +46,7 @@ impl Default for BlockRegistry {
                 ],
             ),
             stone_block: generate_voxel_mesh(
-                [1.0, 1.0, 1.0],
+                VOXEL_DIMS,
                 [4, 4],
                 [
                     (Top, [3, 0]),
@@ -71,7 +73,7 @@ impl VoxelRegistry for BlockRegistry {
     }
 
     fn get_voxel_dimensions(&self) -> [f32; 3] {
-        [1.0, 1.0, 1.0]
+        VOXEL_DIMS
     }
 
     fn get_center(&self) -> [f32; 3] {

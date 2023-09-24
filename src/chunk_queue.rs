@@ -45,6 +45,10 @@ impl ChunkMap {
         self.pos_to_ent.keys()
     }
 
+    pub fn iter(&self) -> bevy::utils::hashbrown::hash_map::Iter<'_, [i32; 2], Entity> {
+        self.pos_to_ent.iter()
+    }
+
     pub fn change_ent(&mut self, cords: [i32; 2], ent: Entity) {
         *(self
             .pos_to_ent
