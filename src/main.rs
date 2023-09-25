@@ -10,6 +10,7 @@ use add_break_blocks::*;
 use bevy::{
     prelude::*,
     tasks::{AsyncComputeTaskPool, ComputeTaskPool, Task},
+    window::PrimaryWindow,
 };
 use bevy_meshem::prelude::*;
 use block_reg::*;
@@ -21,10 +22,13 @@ use player::*;
 use std::{default, sync::Arc};
 pub use utils::*;
 
+use crate::utils::three_d_cords;
+
 // const FACTOR: usize = CHUNK_DIMS.0;
 // Render distance should be above 1.
 pub const RENDER_DISTANCE: i32 = 16;
 pub const GEN_SEED: u32 = 5;
+const CROSSHAIR_SIZE: f32 = 36.0;
 
 #[derive(Resource, Clone)]
 pub struct BlockMaterial(Handle<StandardMaterial>);
@@ -60,7 +64,7 @@ fn main() {
 
     app.add_state::<InitialChunkLoadState>();
 
-    app.add_systems(PreStartup, setup);
+    app.add_systems(PostStartup, setup);
     app.add_systems(
         PostUpdate,
         update_closby_chunks.run_if(in_state(InitialChunkLoadState::Complete)),
@@ -85,6 +89,7 @@ fn setup(
     mut materials: ResMut<Assets<StandardMaterial>>,
     meshes: ResMut<Assets<Mesh>>,
     asset_server: Res<AssetServer>,
+    primary_window: Query<&Window, With<PrimaryWindow>>,
 ) {
     let noise = Perlin::new(GEN_SEED);
     let texture_handle: Handle<Image> = asset_server.load("UV_map_example.png");
@@ -94,6 +99,31 @@ fn setup(
     });
     commands.insert_resource(BlockMaterial(mat));
     commands.spawn(LoadedChunks(0));
+    let mut window_width = CROSSHAIR_SIZE;
+    let mut window_height = CROSSHAIR_SIZE;
+    if let Ok(window) = primary_window.get_single() {
+        (window_width, window_height) = (window.resolution.width(), window.resolution.height());
+    } else {
+        warn!("Primary window not found ");
+    }
+
+    commands.spawn(
+        TextBundle::from_section(
+            format!("+"),
+            TextStyle {
+                font_size: CROSSHAIR_SIZE,
+                color: Color::LIME_GREEN,
+                ..default()
+            },
+        )
+        .with_style(Style {
+            position_type: PositionType::Absolute,
+            align_items: AlignItems::Center,
+            top: Val::Px(window_height / 2.0 - CROSSHAIR_SIZE / 2.0),
+            left: Val::Px(window_width / 2.0 - CROSSHAIR_SIZE / 2.0),
+            ..default()
+        }),
+    );
 }
 
 fn frame_chunk_update(
@@ -250,15 +280,14 @@ fn handle_block_break_place(
     mut commands: Commands,
 ) {
     for event in block_change.iter() {
-        'outer: for &(chunk, block) in event.blocks.iter() {
+        'A: for &(chunk, block, onto) in event.blocks.iter() {
             let ent = chunk_map.get_ent(chunk).expect(
                 "Chunk should be loaded into internal data structure `ChunkMap` but it isn't.",
             );
-            for (e, mut c) in chunk_query.iter_mut() {
+            'B: for (e, mut c) in chunk_query.iter_mut() {
                 if e != ent {
-                    continue;
+                    continue 'B;
                 }
-                println!("hey1");
                 assert_eq!(c.cords, chunk);
                 let tmp_neighbors: Vec<Option<Block>> = vec![None; 6];
                 let mut neighboring_voxels: [Option<Block>; 6] = [None; 6];
@@ -272,12 +301,21 @@ fn handle_block_break_place(
                         }
                 }
                 let vox = c.grid[block];
+                let onto = onto.unwrap_or(usize::max_value());
+                let onto = if onto == usize::max_value() {
+                    u16::max_value()
+                } else {
+                    c.grid[onto]
+                };
+
+                dbg!(block, onto, vox, three_d_cords(block, CHUNK_DIMS));
 
                 if vox == AIR && matches!(event.change, VoxelChange::Broken) {
                     println!("hey2");
                     break;
                 }
-                if vox != AIR && matches!(event.change, VoxelChange::Added) {
+                if (onto == AIR || vox != AIR) && matches!(event.change, VoxelChange::Added) {
+                    println!("hey2");
                     break;
                 }
 
@@ -300,7 +338,7 @@ fn handle_block_break_place(
 
                 println!("hey3");
                 commands.entity(e).insert(ToUpdate);
-                break 'outer;
+                break 'A;
             }
         }
     }

@@ -2,13 +2,15 @@ use crate::{one_d_cords, three_d_cords, *};
 use bevy::prelude::*;
 use bevy_meshem::prelude::*;
 
-const RAY_FORWARD_STEP: f32 = 0.03;
+const RAY_FORWARD_STEP: f32 = 0.01;
 const NANO_STEP_FACTOR: f32 = 15.0;
-const REACH_DISTANCE: u8 = 4;
+const REACH_DISTANCE: u8 = 7;
 
 #[derive(Event)]
 pub struct BlockChange {
-    pub blocks: Vec<([i32; 2], usize)>,
+    // Only if we are placing a block, we need to know what block is against the block we are
+    // placing, because we can't place blocks in the air. If change is `Broken` then this is None.
+    pub blocks: Vec<([i32; 2], usize, Option<usize>)>,
     pub change: VoxelChange,
 }
 
@@ -29,7 +31,7 @@ pub fn add_break_detector(
             block_change_event_writer.send(BlockChange {
                 blocks: blocks_in_the_way(pos, forward, REACH_DISTANCE)
                     .iter()
-                    .map(|(x, y, z)| (*x, one_d_cords(*y, CHUNK_DIMS)))
+                    .map(|(x, y, z)| (*x, one_d_cords(*y, CHUNK_DIMS), None))
                     .collect(),
                 change: VoxelChange::Broken,
             });
@@ -44,7 +46,7 @@ pub fn add_break_detector(
                         let tmp = one_d_cords(y, CHUNK_DIMS);
                         if let Some(block) = get_neighbor(tmp, z, CHUNK_DIMS) {
                             // dbg!((x, block));
-                            (x, block)
+                            (x, block, Some(tmp))
                         } else {
                             match z {
                                 Top => panic!(
@@ -53,10 +55,12 @@ pub fn add_break_detector(
                                 Bottom => {
                                     panic!("\nIn-Game Error: \nCan't build lower than y = 0.")
                                 }
-                                Right => ([x[0] + 1, x[1]], tmp - WIDTH + 1),
-                                Left => ([x[0] - 1, x[1]], tmp + WIDTH - 1),
-                                Back => ([x[0], x[1] + 1], tmp - WIDTH * (LENGTH - 1)),
-                                Forward => ([x[0], x[1] - 1], tmp + WIDTH * (LENGTH - 1)),
+                                Right => ([x[0] + 1, x[1]], tmp - WIDTH + 1, Some(tmp)),
+                                Left => ([x[0] - 1, x[1]], tmp + WIDTH - 1, Some(tmp)),
+                                Back => ([x[0], x[1] + 1], tmp - WIDTH * (LENGTH - 1), Some(tmp)),
+                                Forward => {
+                                    ([x[0], x[1] - 1], tmp + WIDTH * (LENGTH - 1), Some(tmp))
+                                }
                             }
                         }
                     })
