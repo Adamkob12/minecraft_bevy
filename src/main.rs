@@ -249,8 +249,8 @@ fn handle_block_break_place(
     mut chunk_query: Query<(Entity, &mut Chunk), With<ChunkCloseToPlayer>>,
     mut commands: Commands,
 ) {
-    'outer: for event in block_change.iter() {
-        for &(chunk, block) in event.blocks.iter() {
+    for event in block_change.iter() {
+        'outer: for &(chunk, block) in event.blocks.iter() {
             let ent = chunk_map.get_ent(chunk).expect(
                 "Chunk should be loaded into internal data structure `ChunkMap` but it isn't.",
             );
@@ -258,6 +258,7 @@ fn handle_block_break_place(
                 if e != ent {
                     continue;
                 }
+                println!("hey1");
                 assert_eq!(c.cords, chunk);
                 let tmp_neighbors: Vec<Option<Block>> = vec![None; 6];
                 let mut neighboring_voxels: [Option<Block>; 6] = [None; 6];
@@ -273,6 +274,7 @@ fn handle_block_break_place(
                 let vox = c.grid[block];
 
                 if vox == AIR && matches!(event.change, VoxelChange::Broken) {
+                    println!("hey2");
                     break;
                 }
                 if vox != AIR && matches!(event.change, VoxelChange::Added) {
@@ -296,6 +298,7 @@ fn handle_block_break_place(
                     VoxelChange::Broken => c.grid[block] = AIR,
                 }
 
+                println!("hey3");
                 commands.entity(e).insert(ToUpdate);
                 break 'outer;
             }
