@@ -63,7 +63,7 @@ fn main() {
     app.init_resource::<ChunkMap>();
     app.init_resource::<ChunkQueue>();
     app.insert_resource(AmbientLight {
-        brightness: 0.25,
+        brightness: 0.35,
         color: Color::WHITE,
     });
     app.insert_resource(CycleTimer(Timer::new(
@@ -293,6 +293,7 @@ fn check_if_loaded(
     println!("\nInternal Log:\nChunk entities have been successfully spawned");
 }
 
+// Whoever reads this funtion sometime in the future, Please forgive me.
 fn handle_block_break_place(
     mut block_change: EventReader<BlockChange>,
     chunk_map: Res<ChunkMap>,
@@ -304,12 +305,32 @@ fn handle_block_break_place(
             let ent = chunk_map.get_ent(chunk).expect(
                 "Chunk should be loaded into internal data structure `ChunkMap` but it isn't.",
             );
+            let (onto_chunk, onto) = onto.unwrap_or((
+                [i16::min_value() as i32, i32::min_value()],
+                usize::max_value(),
+            ));
+            let onto_ent = if onto_chunk != [i16::min_value() as i32, i32::min_value()] {
+                chunk_map.get_ent(onto_chunk).expect(
+                    "Chunk should be loaded into internal data structure `ChunkMap` but it isn't",
+                )
+            } else {
+                Entity::PLACEHOLDER
+            };
+            let mut onto_chunk = [u16::max_value(); 4096];
+            for (e, c) in chunk_query.iter() {
+                if e == onto_ent {
+                    onto_chunk = c.grid;
+                    break;
+                }
+            }
+            if onto_ent != Entity::PLACEHOLDER {
+                assert_ne!(onto_chunk[0], u16::max_value());
+            }
             'B: for (e, mut c) in chunk_query.iter_mut() {
                 if e != ent {
                     continue 'B;
                 }
                 assert_eq!(c.cords, chunk);
-                let tmp_neighbors: Vec<Option<Block>> = vec![None; 6];
                 let mut neighboring_voxels: [Option<Block>; 6] = [None; 6];
 
                 for i in 0..6 {
@@ -321,22 +342,22 @@ fn handle_block_break_place(
                         }
                 }
                 let vox = c.grid[block];
-                let onto = onto.unwrap_or(usize::max_value());
                 let onto = if onto == usize::max_value() {
                     u16::max_value()
                 } else {
-                    c.grid[onto]
+                    onto_chunk[onto]
                 };
-
-                dbg!(block, onto, vox, three_d_cords(block, CHUNK_DIMS));
 
                 if vox == AIR && matches!(event.change, VoxelChange::Broken) {
                     println!("hey2");
-                    break;
+                    continue 'A;
                 }
                 if (onto == AIR || vox != AIR) && matches!(event.change, VoxelChange::Added) {
                     println!("hey2");
-                    break;
+                    if onto != AIR {
+                        break 'A;
+                    }
+                    continue 'A;
                 }
 
                 c.meta_data.log(
@@ -352,7 +373,10 @@ fn handle_block_break_place(
                 );
 
                 match event.change {
-                    VoxelChange::Added => c.grid[block] = STONE,
+                    VoxelChange::Added => {
+                        c.grid[block] = STONE;
+                        info!("\n\n!!!Placed block\n{block}, {onto}");
+                    }
                     VoxelChange::Broken => c.grid[block] = AIR,
                 }
 

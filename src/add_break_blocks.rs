@@ -4,13 +4,13 @@ use bevy_meshem::prelude::*;
 
 const RAY_FORWARD_STEP: f32 = 0.01;
 const NANO_STEP_FACTOR: f32 = 15.0;
-const REACH_DISTANCE: u8 = 7;
+const REACH_DISTANCE: u8 = 5;
 
 #[derive(Event)]
 pub struct BlockChange {
     // Only if we are placing a block, we need to know what block is against the block we are
     // placing, because we can't place blocks in the air. If change is `Broken` then this is None.
-    pub blocks: Vec<([i32; 2], usize, Option<usize>)>,
+    pub blocks: Vec<([i32; 2], usize, Option<([i32; 2], usize)>)>,
     pub change: VoxelChange,
 }
 
@@ -51,7 +51,7 @@ pub fn add_break_detector(
                         let tmp = one_d_cords(y, CHUNK_DIMS);
                         if let Some(block) = get_neighbor(tmp, z, CHUNK_DIMS) {
                             // dbg!((x, block));
-                            (x, block, Some(tmp))
+                            (x, block, Some((x, tmp)))
                         } else {
                             match z {
                                 Top => panic!(
@@ -60,13 +60,20 @@ pub fn add_break_detector(
                                 Bottom => {
                                     panic!("\nIn-Game Error: \nCan't build lower than y = 0.")
                                 }
-                                Right => ([x[0] + 1, x[1]], tmp - WIDTH + 1, Some(tmp)),
-                                Left => ([x[0] - 1, x[1]], tmp + WIDTH - 1, Some(tmp)),
-                                Back => ([x[0], x[1] + 1], tmp - WIDTH * (LENGTH - 1), Some(tmp)),
+                                Right => ([x[0] + 1, x[1]], tmp - WIDTH + 1, Some((x, tmp))),
+                                Left => ([x[0] - 1, x[1]], tmp + WIDTH - 1, Some((x, tmp))),
+                                Back => {
+                                    ([x[0], x[1] + 1], tmp - WIDTH * (LENGTH - 1), Some((x, tmp)))
+                                }
                                 Forward => {
-                                    ([x[0], x[1] - 1], tmp + WIDTH * (LENGTH - 1), Some(tmp))
+                                    ([x[0], x[1] - 1], tmp + WIDTH * (LENGTH - 1), Some((x, tmp)))
                                 }
                             }
+                            // (
+                            //     x,
+                            //     one_d_cords(y, CHUNK_DIMS),
+                            //     Some(one_d_cords(y, CHUNK_DIMS)),
+                            // )
                         }
                     })
                     .collect(),
@@ -76,37 +83,31 @@ pub fn add_break_detector(
 }
 
 fn blocks_in_the_way(pos: Vec3, forward: Vec3, distance: u8) -> Vec<([i32; 2], [usize; 3], Face)> {
-    println!("\n----\nposition: {}", pos);
-    println!("forward vector: {}", forward);
     let step = forward * RAY_FORWARD_STEP;
+    let possible_faces: [Face; 3] = [
+        if forward.x > 0.0 { Left } else { Right },
+        if forward.y > 0.0 { Bottom } else { Top },
+        if forward.z > 0.0 { Forward } else { Back },
+    ];
     // let mut point = pos + Vec3::new(0.5, 0.5, 0.5);
     let mut point = pos;
-    let mut current_block = [
-        point.x.floor() + 0.5,
-        point.y.floor() + 0.5,
-        point.z.floor() + 0.5,
-    ];
+    let mut current_block = [point.x.round(), point.y.round(), point.z.round()];
     let mut to_return: Vec<([i32; 2], [usize; 3], Face)> = vec![];
 
     while point.distance(pos) < distance as f32 {
         point += step;
-        let tmp = [
-            point.x.floor() + 0.5,
-            point.y.floor() + 0.5,
-            point.z.floor() + 0.5,
-        ];
+        let tmp = [point.x.round(), point.y.round(), point.z.round()];
         if tmp != current_block {
-            println!("Encountered block {:?}", tmp);
             current_block = tmp;
             let face = {
-                let mut r: Face = Top;
+                let r: Face;
                 let mut p = point - step;
                 let nano_step = step / NANO_STEP_FACTOR;
-                for _ in 1..NANO_STEP_FACTOR as usize {
+                loop {
                     p += nano_step;
-                    let tmp = [p.x.floor() + 0.5, p.y.floor() + 0.5, p.z.floor() + 0.5];
+                    let tmp = [p.x.round(), p.y.round(), p.z.round()];
                     if tmp == current_block {
-                        r = closest_face(p);
+                        r = closest_face(p, possible_faces);
                         break;
                     }
                 }
@@ -120,42 +121,47 @@ fn blocks_in_the_way(pos: Vec3, forward: Vec3, distance: u8) -> Vec<([i32; 2], [
     to_return
 }
 
-fn closest_face(p: Vec3) -> Face {
+#[allow(non_snake_case)]
+fn closest_face(p: Vec3, possible_faces: [Face; 3]) -> Face {
     let mut min = f32::MAX;
-    let mut face = Top;
+    let mut face = Bottom;
 
-    // let x = p.x - 0.5;
-    // let z = p.z - 0.5;
-    // let y = p.y - 0.5;
     let x = p.x;
     let z = p.z;
     let y = p.y;
+    let X = p.x.round();
+    let Z = p.z.round();
+    let Y = p.y.round();
 
-    if (x.floor() - x).abs() < min {
-        min = (x.floor() - x).abs();
-        face = Left;
+    for f in possible_faces {
+        let d = distance_from_face(p, f);
+        if d < min {
+            face = f;
+            min = d;
+        }
     }
-    if (x.ceil() - x).abs() < min {
-        min = (x.ceil() - x).abs();
-        face = Right;
-    }
-    if (z.floor() - z).abs() < min {
-        min = (z.floor() - z).abs();
-        face = Forward;
-    }
-    if (z.ceil() - z).abs() < min {
-        min = (z.ceil() - z).abs();
-        face = Back;
-    }
-    if (y.floor() - y).abs() < min {
-        min = (y.floor() - y).abs();
-        face = Bottom;
-    }
-    if (y.ceil() - y).abs() < min {
-        face = Top;
-    }
+
     return face;
 }
+
+#[allow(non_snake_case)]
+fn distance_from_face(p: Vec3, face: Face) -> f32 {
+    let x = p.x;
+    let z = p.z;
+    let y = p.y;
+    let X = p.x.round();
+    let Z = p.z.round();
+    let Y = p.y.round();
+    match face {
+        Top => (Y + 0.5 - y).abs(),
+        Bottom => (Y - 0.5 - y).abs(),
+        Right => (X + 0.5 - x).abs(),
+        Left => (X - 0.5 - x).abs(),
+        Back => (Z + 0.5 - z).abs(),
+        Forward => (Z - 0.5 - z).abs(),
+    }
+}
+
 // fn closest_face(p: Vec3) -> Face {
 //     let faces = [
 //         ((p.x.floor() - p.x).abs(), Face::Left),
