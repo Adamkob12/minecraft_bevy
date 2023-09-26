@@ -3,7 +3,10 @@ mod add_break_blocks;
 mod block_reg;
 mod chunk;
 mod chunk_queue;
+mod compute_aabb;
+mod debug_3d;
 mod player;
+mod sky;
 mod utils;
 
 use add_break_blocks::*;
@@ -12,13 +15,16 @@ use bevy::{
     tasks::{AsyncComputeTaskPool, ComputeTaskPool, Task},
     window::PrimaryWindow,
 };
+use bevy_atmosphere::prelude::*;
 use bevy_meshem::prelude::*;
 use block_reg::*;
 use chunk::*;
 use chunk_queue::*;
+use debug_3d::*;
 use futures_lite::future;
 use noise::Perlin;
 use player::*;
+use sky::*;
 use std::{default, sync::Arc};
 pub use utils::*;
 
@@ -26,7 +32,7 @@ use crate::utils::three_d_cords;
 
 // const FACTOR: usize = CHUNK_DIMS.0;
 // Render distance should be above 1.
-pub const RENDER_DISTANCE: i32 = 16;
+pub const RENDER_DISTANCE: i32 = 8;
 pub const GEN_SEED: u32 = 5;
 const CROSSHAIR_SIZE: f32 = 36.0;
 
@@ -50,15 +56,21 @@ struct LoadedChunks(usize);
 fn main() {
     let mut app = App::new();
     app.add_plugins(DefaultPlugins.set(ImagePlugin::default_nearest()));
+    app.add_plugins(AtmospherePlugin);
     app.add_plugins(PlayerPlugin);
 
     app.init_resource::<BlockRegistry>();
     app.init_resource::<ChunkMap>();
     app.init_resource::<ChunkQueue>();
     app.insert_resource(AmbientLight {
-        brightness: 0.5,
+        brightness: 0.25,
         color: Color::WHITE,
     });
+    app.insert_resource(CycleTimer(Timer::new(
+        bevy::utils::Duration::from_millis(50),
+        TimerMode::Repeating,
+    )));
+    app.insert_resource(AtmosphereModel::default());
 
     app.add_event::<BlockChange>();
 
@@ -67,18 +79,25 @@ fn main() {
     app.add_systems(PostStartup, setup);
     app.add_systems(
         PostUpdate,
-        update_closby_chunks.run_if(in_state(InitialChunkLoadState::Complete)),
+        (update_closby_chunks, daylight_cycle).run_if(in_state(InitialChunkLoadState::Complete)),
     );
+    app.add_systems(OnEnter(InitialChunkLoadState::Complete), setup_light);
     app.add_systems(
         Update,
         check_if_loaded.run_if(in_state(InitialChunkLoadState::MeshesLoaded)),
     );
-    app.add_systems(Update, update_mesh_frame);
-    app.add_systems(Update, frame_chunk_update);
-    app.add_systems(Update, handle_tasks);
-    app.add_systems(Update, add_break_detector);
-    app.add_systems(PostUpdate, spawn_and_despawn_chunks);
-    app.add_systems(PostUpdate, handle_block_break_place);
+    app.add_systems(
+        Update,
+        (
+            // draw_ray_forward,
+            handle_tasks,
+            frame_chunk_update,
+            update_mesh_frame,
+            add_break_detector,
+        ),
+    );
+    app.add_systems(Update, spawn_and_despawn_chunks);
+    app.add_systems(Update, handle_block_break_place);
 
     app.run();
 }
@@ -95,6 +114,7 @@ fn setup(
     let texture_handle: Handle<Image> = asset_server.load("UV_map_example.png");
     let mat = materials.add(StandardMaterial {
         base_color_texture: Some(texture_handle),
+        reflectance: 0.0,
         ..default()
     });
     commands.insert_resource(BlockMaterial(mat));
@@ -348,6 +368,7 @@ fn update_mesh_frame(
     mut query: Query<(Entity, &Handle<Mesh>, &mut Chunk), With<ToUpdate>>,
     mut meshes: ResMut<Assets<Mesh>>,
     breg: Res<BlockRegistry>,
+    mut commands: Commands,
 ) {
     let breg = Arc::new(breg.into_inner().clone());
     for (ent, mesh_handle, mut chunk) in query.iter_mut() {
@@ -355,5 +376,10 @@ fn update_mesh_frame(
             .get_mut(mesh_handle)
             .expect("Can't find chunk mesh in internal assets");
         update_mesh(mesh_ref_mut, &mut chunk.meta_data, &*breg.clone());
+        if let Some(aabb) = mesh_ref_mut.compute_aabb() {
+            commands.entity(ent).insert(aabb).remove::<ToUpdate>();
+        } else {
+            warn!("Couldn't compute Aabb for mesh after updating");
+        }
     }
 }

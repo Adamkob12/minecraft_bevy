@@ -20,14 +20,15 @@ pub fn add_break_detector(
     buttons: Res<Input<MouseButton>>,
 ) {
     if let Ok((chunk, tran)) = player_query.get_single() {
-        if tran.translation.y > HEIGHT as f32 || tran.translation.y < 0.0 {
-            return;
-        }
         let chunk = (*chunk).0;
         let forward = tran.forward();
         let pos = tran.translation;
 
         if buttons.just_pressed(MouseButton::Left) {
+            if tran.translation.y > HEIGHT as f32 || tran.translation.y < 0.0 {
+                info!("\nIn-Game Log:\n Can't break / place blocks above the maximum height.");
+                return;
+            }
             block_change_event_writer.send(BlockChange {
                 blocks: blocks_in_the_way(pos, forward, REACH_DISTANCE)
                     .iter()
@@ -36,12 +37,16 @@ pub fn add_break_detector(
                 change: VoxelChange::Broken,
             });
         }
+
         if buttons.just_pressed(MouseButton::Right) {
+            if tran.translation.y > HEIGHT as f32 || tran.translation.y < 0.0 {
+                info!("\nIn-Game Log:\n Can't break / place blocks above the maximum height.");
+                return;
+            }
             block_change_event_writer.send(BlockChange {
                 change: VoxelChange::Added,
                 blocks: blocks_in_the_way(pos, forward, REACH_DISTANCE)
                     .iter()
-                    .rev()
                     .map(|&(x, y, z)| {
                         let tmp = one_d_cords(y, CHUNK_DIMS);
                         if let Some(block) = get_neighbor(tmp, z, CHUNK_DIMS) {
@@ -74,6 +79,7 @@ fn blocks_in_the_way(pos: Vec3, forward: Vec3, distance: u8) -> Vec<([i32; 2], [
     println!("\n----\nposition: {}", pos);
     println!("forward vector: {}", forward);
     let step = forward * RAY_FORWARD_STEP;
+    // let mut point = pos + Vec3::new(0.5, 0.5, 0.5);
     let mut point = pos;
     let mut current_block = [
         point.x.floor() + 0.5,
@@ -114,50 +120,56 @@ fn blocks_in_the_way(pos: Vec3, forward: Vec3, distance: u8) -> Vec<([i32; 2], [
     to_return
 }
 
-//
-// fn closest_face(p: Vec3) -> Face {
-//     let mut min = f32::MAX;
-//     let mut face = Top;
-//
-//     if (p.x.floor() - p.x).abs() < min {
-//         min = (p.x.floor() - p.x).abs();
-//         face = Left;
-//     }
-//     if (p.x.ceil() - p.x).abs() < min {
-//         min = (p.x.ceil() - p.x).abs();
-//         face = Right;
-//     }
-//     if (p.z.floor() - p.z).abs() < min {
-//         min = (p.z.floor() - p.z).abs();
-//         face = Forward;
-//     }
-//     if (p.z.ceil() - p.z).abs() < min {
-//         min = (p.z.ceil() - p.z).abs();
-//         face = Back;
-//     }
-//     if (p.y.floor() - p.y).abs() < min {
-//         min = (p.y.floor() - p.y).abs();
-//         face = Bottom;
-//     }
-//     if (p.y.ceil() - p.y).abs() < min {
-//         face = Top;
-//     }
-//     return face;
-// }
 fn closest_face(p: Vec3) -> Face {
-    let faces = [
-        ((p.x.floor() - p.x).abs(), Face::Left),
-        ((p.x.ceil() - p.x).abs(), Face::Right),
-        ((p.y.floor() - p.y).abs(), Face::Bottom),
-        ((p.y.ceil() - p.y).abs(), Face::Top),
-        ((p.z.floor() - p.z).abs(), Face::Forward),
-        ((p.z.ceil() - p.z).abs(), Face::Back),
-    ];
+    let mut min = f32::MAX;
+    let mut face = Top;
 
-    faces
-        .iter()
-        .cloned()
-        .min_by(|a, b| a.0.partial_cmp(&b.0).unwrap_or(std::cmp::Ordering::Equal))
-        .map(|(_, face)| face)
-        .unwrap_or(Face::Top) // Default face if somehow comparison fails.
+    // let x = p.x - 0.5;
+    // let z = p.z - 0.5;
+    // let y = p.y - 0.5;
+    let x = p.x;
+    let z = p.z;
+    let y = p.y;
+
+    if (x.floor() - x).abs() < min {
+        min = (x.floor() - x).abs();
+        face = Left;
+    }
+    if (x.ceil() - x).abs() < min {
+        min = (x.ceil() - x).abs();
+        face = Right;
+    }
+    if (z.floor() - z).abs() < min {
+        min = (z.floor() - z).abs();
+        face = Forward;
+    }
+    if (z.ceil() - z).abs() < min {
+        min = (z.ceil() - z).abs();
+        face = Back;
+    }
+    if (y.floor() - y).abs() < min {
+        min = (y.floor() - y).abs();
+        face = Bottom;
+    }
+    if (y.ceil() - y).abs() < min {
+        face = Top;
+    }
+    return face;
 }
+// fn closest_face(p: Vec3) -> Face {
+//     let faces = [
+//         ((p.x.floor() - p.x).abs(), Face::Left),
+//         ((p.x.ceil() - p.x).abs(), Face::Right),
+//         ((p.y.floor() - p.y).abs(), Face::Bottom),
+//         ((p.y.ceil() - p.y).abs(), Face::Top),
+//         ((p.z.floor() - p.z).abs(), Face::Forward),
+//         ((p.z.ceil() - p.z).abs(), Face::Back),
+//     ];
+//
+//     faces
+//         .iter()
+//         .cloned()
+//         .min_by(|a, b| a.0.partial_cmp(&b.0).unwrap_or(std::cmp::Ordering::Equal))
+//         .map(|(_, face)| face)
+//         .unwrap_or(Face::Top) // Default face if somehow comparison fails.
+// }

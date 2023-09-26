@@ -115,6 +115,7 @@ impl ChunkQueue {
                     let grid = generate_chunk(cords, &noise);
                     let t =
                         mesh_grid(CHUNK_DIMS, grid.to_vec(), &*breg, MeshingAlgorithm::Culling)?;
+                    // t.0.compute_flat_normals();
                     Some((t, grid, cords))
                 });
             }

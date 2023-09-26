@@ -2,9 +2,11 @@ use bevy::prelude::Vec3;
 pub fn position_to_chunk(pos: Vec3, chunk_dims: (usize, usize, usize)) -> [i32; 2] {
     let chunk_width = chunk_dims.0;
     let chunk_length = chunk_dims.1;
+    let x = pos.x + 0.5;
+    let z = pos.z + 0.5;
     [
-        (pos.x / chunk_width as f32 + (pos.x.signum() - 1.0) / 2.0) as i32,
-        (pos.z / chunk_length as f32 + (pos.z.signum() - 1.0) / 2.0) as i32,
+        (x / chunk_width as f32 + (x.signum() - 1.0) / 2.0) as i32,
+        (z / chunk_length as f32 + (z.signum() - 1.0) / 2.0) as i32,
     ]
 }
 
@@ -18,13 +20,17 @@ pub fn position_to_chunk_position(
     let chunk_height = chunk_dims.1;
     let chunk = position_to_chunk(pos, chunk_dims);
 
+    let x = pos.x + 0.5;
+    let z = pos.z + 0.5;
+    let y = pos.y + 0.5;
+
     let chunk_pos = [
-        (pos.x - chunk[0] as f32 * chunk_width as f32) as usize,
-        pos.y as usize,
-        (pos.z - chunk[1] as f32 * chunk_length as f32) as usize,
+        (x - chunk[0] as f32 * chunk_width as f32) as usize,
+        y as usize,
+        (z - chunk[1] as f32 * chunk_length as f32) as usize,
     ];
 
-    let flag = pos.y >= 0.0 && pos.y <= chunk_height as f32;
+    let flag = y >= 0.0 && y <= chunk_height as f32;
     (chunk, chunk_pos, flag)
 }
 

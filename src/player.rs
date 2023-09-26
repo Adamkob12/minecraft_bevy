@@ -9,6 +9,7 @@ use crate::*;
 use bevy::ecs::event::{Events, ManualEventReader};
 use bevy::input::mouse::MouseMotion;
 use bevy::window::{CursorGrabMode, PrimaryWindow};
+use bevy_atmosphere::prelude::*;
 
 pub mod prelude {
     pub use crate::*;
@@ -108,6 +109,7 @@ fn setup_player(mut commands: Commands) {
         },
         FlyCam,
         CurrentChunk([0, 0]),
+        AtmosphereCamera::default(),
     ));
 }
 
