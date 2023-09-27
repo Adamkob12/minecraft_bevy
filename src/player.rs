@@ -1,3 +1,5 @@
+use std::f32::consts::PI;
+
 // CREDIT TO bevy_flycam
 // ~~~~~~~~~~~~~~~~~~~
 // I copied this code because the 0.11 port wasn't on crates.io
@@ -31,8 +33,8 @@ pub struct MovementSettings {
 impl Default for MovementSettings {
     fn default() -> Self {
         Self {
-            sensitivity: 0.00012,
-            speed: 18.,
+            sensitivity: 0.00008,
+            speed: 10.,
         }
     }
 }
@@ -109,7 +111,7 @@ fn setup_player(mut commands: Commands) {
         },
         FlyCam,
         CurrentChunk([0, 0]),
-        AtmosphereCamera::default(),
+        // AtmosphereCamera::default(),
     ));
 }
 

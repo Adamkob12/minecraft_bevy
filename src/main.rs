@@ -32,7 +32,7 @@ use crate::utils::three_d_cords;
 
 // const FACTOR: usize = CHUNK_DIMS.0;
 // Render distance should be above 1.
-pub const RENDER_DISTANCE: i32 = 8;
+pub const RENDER_DISTANCE: i32 = 10;
 pub const GEN_SEED: u32 = 5;
 const CROSSHAIR_SIZE: f32 = 36.0;
 
@@ -55,7 +55,18 @@ struct LoadedChunks(usize);
 
 fn main() {
     let mut app = App::new();
-    app.add_plugins(DefaultPlugins.set(ImagePlugin::default_nearest()));
+    app.add_plugins(
+        DefaultPlugins
+            .set(ImagePlugin::default_nearest())
+            .set(WindowPlugin {
+                primary_window: Some(Window {
+                    resizable: false,
+                    mode: bevy::window::WindowMode::BorderlessFullscreen,
+                    ..Default::default()
+                }),
+                ..Default::default()
+            }),
+    );
     app.add_plugins(AtmospherePlugin);
     app.add_plugins(PlayerPlugin);
 
@@ -96,8 +107,8 @@ fn main() {
             add_break_detector,
         ),
     );
-    app.add_systems(Update, spawn_and_despawn_chunks);
-    app.add_systems(Update, handle_block_break_place);
+    app.add_systems(PreUpdate, spawn_and_despawn_chunks);
+    app.add_systems(PostUpdate, handle_block_break_place);
 
     app.run();
 }
@@ -108,7 +119,6 @@ fn setup(
     mut materials: ResMut<Assets<StandardMaterial>>,
     meshes: ResMut<Assets<Mesh>>,
     asset_server: Res<AssetServer>,
-    primary_window: Query<&Window, With<PrimaryWindow>>,
 ) {
     let noise = Perlin::new(GEN_SEED);
     let texture_handle: Handle<Image> = asset_server.load("UV_map_example.png");
@@ -119,31 +129,6 @@ fn setup(
     });
     commands.insert_resource(BlockMaterial(mat));
     commands.spawn(LoadedChunks(0));
-    let mut window_width = CROSSHAIR_SIZE;
-    let mut window_height = CROSSHAIR_SIZE;
-    if let Ok(window) = primary_window.get_single() {
-        (window_width, window_height) = (window.resolution.width(), window.resolution.height());
-    } else {
-        warn!("Primary window not found ");
-    }
-
-    commands.spawn(
-        TextBundle::from_section(
-            format!("+"),
-            TextStyle {
-                font_size: CROSSHAIR_SIZE,
-                color: Color::LIME_GREEN,
-                ..default()
-            },
-        )
-        .with_style(Style {
-            position_type: PositionType::Absolute,
-            align_items: AlignItems::Center,
-            top: Val::Px(window_height / 2.0 - CROSSHAIR_SIZE / 2.0),
-            left: Val::Px(window_width / 2.0 - CROSSHAIR_SIZE / 2.0),
-            ..default()
-        }),
-    );
 }
 
 fn frame_chunk_update(
@@ -255,9 +240,6 @@ fn handle_tasks(
                         cords,
                         meta_data: metadata,
                     },
-                    BlockChangeQueue {
-                        block_queue: vec![],
-                    },
                 ))
                 .id();
             chunk_map.insert_ent(cords, ent);
@@ -268,7 +250,7 @@ fn handle_tasks(
                         if loaded_chunks.0 == (RENDER_DISTANCE * RENDER_DISTANCE) as usize {
                             next_state.set(InitialChunkLoadState::MeshesLoaded);
                             commands.entity(counter_ent).despawn();
-                            println!("\nInternal Log:\nMeshes have been loaded");
+                            info!("\nInternal Log:\nMeshes have been loaded");
                         }
                     }
                     _ => {}
@@ -290,7 +272,7 @@ fn check_if_loaded(
         }
     }
     next_state.set(InitialChunkLoadState::Complete);
-    println!("\nInternal Log:\nChunk entities have been successfully spawned");
+    info!("\nInternal Log:\nChunk entities have been successfully spawned");
 }
 
 // Whoever reads this funtion sometime in the future, Please forgive me.
@@ -349,11 +331,9 @@ fn handle_block_break_place(
                 };
 
                 if vox == AIR && matches!(event.change, VoxelChange::Broken) {
-                    println!("hey2");
                     continue 'A;
                 }
                 if (onto == AIR || vox != AIR) && matches!(event.change, VoxelChange::Added) {
-                    println!("hey2");
                     if onto != AIR {
                         break 'A;
                     }
@@ -380,7 +360,6 @@ fn handle_block_break_place(
                     VoxelChange::Broken => c.grid[block] = AIR,
                 }
 
-                println!("hey3");
                 commands.entity(e).insert(ToUpdate);
                 break 'A;
             }

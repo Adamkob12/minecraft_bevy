@@ -47,6 +47,7 @@ pub fn add_break_detector(
                 change: VoxelChange::Added,
                 blocks: blocks_in_the_way(pos, forward, REACH_DISTANCE)
                     .iter()
+                    .skip(1)
                     .map(|&(x, y, z)| {
                         let tmp = one_d_cords(y, CHUNK_DIMS);
                         if let Some(block) = get_neighbor(tmp, z, CHUNK_DIMS) {
