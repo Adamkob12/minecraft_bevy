@@ -3,7 +3,6 @@ mod add_break_blocks;
 mod block_reg;
 mod chunk;
 mod chunk_queue;
-mod compute_aabb;
 mod debug_3d;
 mod player;
 mod sky;
