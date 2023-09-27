@@ -1,6 +1,4 @@
-use std::f32::consts::PI;
-
-// CREDIT TO bevy_flycam
+// credit to bevy_flycam
 // ~~~~~~~~~~~~~~~~~~~
 // I copied this code because the 0.11 port wasn't on crates.io
 // this code was taken from:
@@ -11,7 +9,6 @@ use crate::*;
 use bevy::ecs::event::{Events, ManualEventReader};
 use bevy::input::mouse::MouseMotion;
 use bevy::window::{CursorGrabMode, PrimaryWindow};
-use bevy_atmosphere::prelude::*;
 
 pub mod prelude {
     pub use crate::*;

@@ -1,4 +1,4 @@
-use crate::{one_d_cords, three_d_cords, *};
+use crate::{one_d_cords, *};
 use bevy::prelude::*;
 use bevy_meshem::prelude::*;
 
@@ -19,8 +19,7 @@ pub fn add_break_detector(
     player_query: Query<(&CurrentChunk, &Transform), With<FlyCam>>,
     buttons: Res<Input<MouseButton>>,
 ) {
-    if let Ok((chunk, tran)) = player_query.get_single() {
-        let chunk = (*chunk).0;
+    if let Ok((_, tran)) = player_query.get_single() {
         let forward = tran.forward();
         let pos = tran.translation;
 
@@ -32,7 +31,7 @@ pub fn add_break_detector(
             block_change_event_writer.send(BlockChange {
                 blocks: blocks_in_the_way(pos, forward, REACH_DISTANCE)
                     .iter()
-                    .map(|(x, y, z)| (*x, one_d_cords(*y, CHUNK_DIMS), None))
+                    .map(|(x, y, _z)| (*x, one_d_cords(*y, CHUNK_DIMS), None))
                     .collect(),
                 change: VoxelChange::Broken,
             });
@@ -127,13 +126,6 @@ fn closest_face(p: Vec3, possible_faces: [Face; 3]) -> Face {
     let mut min = f32::MAX;
     let mut face = Bottom;
 
-    let x = p.x;
-    let z = p.z;
-    let y = p.y;
-    let X = p.x.round();
-    let Z = p.z.round();
-    let Y = p.y.round();
-
     for f in possible_faces {
         let d = distance_from_face(p, f);
         if d < min {
@@ -162,21 +154,3 @@ fn distance_from_face(p: Vec3, face: Face) -> f32 {
         Forward => (Z - 0.5 - z).abs(),
     }
 }
-
-// fn closest_face(p: Vec3) -> Face {
-//     let faces = [
-//         ((p.x.floor() - p.x).abs(), Face::Left),
-//         ((p.x.ceil() - p.x).abs(), Face::Right),
-//         ((p.y.floor() - p.y).abs(), Face::Bottom),
-//         ((p.y.ceil() - p.y).abs(), Face::Top),
-//         ((p.z.floor() - p.z).abs(), Face::Forward),
-//         ((p.z.ceil() - p.z).abs(), Face::Back),
-//     ];
-//
-//     faces
-//         .iter()
-//         .cloned()
-//         .min_by(|a, b| a.0.partial_cmp(&b.0).unwrap_or(std::cmp::Ordering::Equal))
-//         .map(|(_, face)| face)
-//         .unwrap_or(Face::Top) // Default face if somehow comparison fails.
-// }
