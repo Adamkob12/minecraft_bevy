@@ -55,10 +55,10 @@ pub fn daylight_cycle(
     mut atmosphere: AtmosphereMut<Nishita>,
     mut query: Query<(&mut Transform, &mut DirectionalLight), With<Sun>>,
 ) {
-    atmosphere.sun_position = Vec3::new(0., 0.8, 0.8);
+    atmosphere.sun_position = Vec3::new(0.0, 0.9, 0.7);
 
     if let Some((mut light_trans, mut directional)) = query.single_mut().into() {
-        light_trans.rotation = Quat::from_rotation_x(-2.85);
-        directional.illuminance = 25000.0;
+        light_trans.rotation = Quat::from_rotation_x(-2.75);
+        directional.illuminance = 20000.0;
     }
 }

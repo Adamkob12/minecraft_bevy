@@ -14,6 +14,7 @@ use bevy_meshem::prelude::*;
 use block_reg::*;
 use chunk::*;
 use core::f32::consts::PI;
+#[allow(unused_imports)]
 use debug_3d::*;
 use futures_lite::future;
 use noise::Perlin;
@@ -24,7 +25,7 @@ pub use utils::*;
 
 // const FACTOR: usize = CHUNK_DIMS.0;
 // Render distance should be above 1.
-pub const RENDER_DISTANCE: i32 = 8;
+pub const RENDER_DISTANCE: i32 = 4;
 pub const GEN_SEED: u32 = 5;
 const CROSSHAIR_SIZE: f32 = 36.0;
 
@@ -61,7 +62,7 @@ fn main() {
 
         .init_resource::<BlockRegistry>()
         .insert_resource(AmbientLight {
-                brightness: 0.35, color: Color::WHITE,})
+                brightness: 0.8, color: Color::WHITE,})
         .insert_resource(CycleTimer(Timer::new(
                 bevy::utils::Duration::from_millis(50),
                 TimerMode::Repeating,)))
@@ -77,7 +78,7 @@ fn main() {
         .add_systems(OnEnter(InitialChunkLoadState::Complete), setup_light)
         .add_systems(Update,
             check_if_loaded.run_if(in_state(InitialChunkLoadState::MeshesLoaded)),)
-        .add_systems(Update,(handle_tasks, add_break_detector, debug_cage),)
+        .add_systems(Update,(handle_tasks, add_break_detector, /* debug_cage */),)
         .add_systems(PostUpdate, handle_block_break_place);
 
     app.run();
@@ -99,7 +100,7 @@ fn setup(
     commands.spawn(LoadedChunks(0));
     let mut projection = camera_query.get_single_mut().unwrap();
     if let Projection::Perspective(ref mut perspective) = *projection {
-        perspective.fov = PI / 2.6;
+        perspective.fov = PI / 3.0;
     }
 }
 
@@ -224,7 +225,7 @@ fn handle_block_break_place(
             } else {
                 Entity::PLACEHOLDER
             };
-            let mut onto_chunk = [u16::max_value(); 4096];
+            let mut onto_chunk = [u16::max_value(); CHUNK_LEN];
             for (e, c) in chunk_query.iter() {
                 if e == onto_ent {
                     onto_chunk = c.grid;

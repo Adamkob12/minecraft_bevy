@@ -81,7 +81,6 @@ pub(super) fn player_move(
                     }
                 }
             }
-            // Apply gravity
             direction = direction.normalize_or_zero();
             // Calculate if we collided with a block
             let velocity = direction * time.delta_seconds() * settings.speed;
