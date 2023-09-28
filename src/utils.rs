@@ -1,4 +1,5 @@
 use bevy::prelude::Vec3;
+
 pub fn position_to_chunk(pos: Vec3, chunk_dims: (usize, usize, usize)) -> [i32; 2] {
     let chunk_width = chunk_dims.0;
     let chunk_length = chunk_dims.1;
@@ -34,7 +35,7 @@ pub fn position_to_chunk_position(
     (chunk, chunk_pos, flag)
 }
 
-pub fn three_d_cords(oned: usize, dims: (usize, usize, usize)) -> (usize, usize, usize) {
+pub const fn three_d_cords(oned: usize, dims: (usize, usize, usize)) -> (usize, usize, usize) {
     let height = dims.2;
     let length = dims.1;
     let width = dims.0;
@@ -50,9 +51,34 @@ pub fn three_d_cords(oned: usize, dims: (usize, usize, usize)) -> (usize, usize,
     (w, h, l)
 }
 
-pub fn one_d_cords(threed: [usize; 3], dims: (usize, usize, usize)) -> usize {
+pub const fn one_d_cords(threed: [usize; 3], dims: (usize, usize, usize)) -> usize {
     assert!(threed[0] < dims.0, "3d coordinate out of dimension bounds.");
     assert!(threed[1] < dims.1, "3d coordinate out of dimension bounds.");
     assert!(threed[2] < dims.2, "3d coordinate out of dimension bounds.");
-    threed[1] * (dims.0 * dims.1) + threed[2] * dims.0 + threed[0]
+    threed[1] * (dims.0 * dims.2) + threed[2] * dims.0 + threed[0]
+}
+
+// Extract the vertex data for the physics engine.
+use bevy::render::mesh::{Mesh, VertexAttributeValues};
+pub fn extract_position_vertex_data(mesh: &Mesh) -> Vec<Vec3> {
+    let VertexAttributeValues::Float32x3(pos_vertices) =
+        mesh.attribute(Mesh::ATTRIBUTE_POSITION).unwrap() else {
+        panic!("Vertex position data should be in `VertexAttributeValues::Float32x3`")
+    };
+    pos_vertices
+        .iter()
+        .map(|[x, y, z]| Vec3::new(*x, *y, *z))
+        .collect()
+}
+
+// Extract the indices for the physics engine.
+use bevy::render::mesh::Indices;
+pub fn extract_indices_data(mesh: &Mesh) -> Vec<[u32; 3]> {
+    let Indices::U32(indices) = mesh.indices().unwrap() else {
+        panic!("Indices data shoud be in `Indices::U32` format")
+    };
+    indices
+        .chunks(3)
+        .map(|chunk| [chunk[0], chunk[1], chunk[2]])
+        .collect()
 }

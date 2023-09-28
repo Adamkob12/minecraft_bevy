@@ -13,6 +13,8 @@ use bevy_atmosphere::prelude::*;
 use bevy_meshem::prelude::*;
 use block_reg::*;
 use chunk::*;
+use core::f32::consts::PI;
+use debug_3d::*;
 use futures_lite::future;
 use noise::Perlin;
 use player::*;
@@ -22,7 +24,7 @@ pub use utils::*;
 
 // const FACTOR: usize = CHUNK_DIMS.0;
 // Render distance should be above 1.
-pub const RENDER_DISTANCE: i32 = 7;
+pub const RENDER_DISTANCE: i32 = 8;
 pub const GEN_SEED: u32 = 5;
 const CROSSHAIR_SIZE: f32 = 36.0;
 
@@ -46,13 +48,12 @@ fn main() {
             .set(WindowPlugin {
                 primary_window: Some(Window {
                     resizable: false,
-                    mode: bevy::window::WindowMode::BorderlessFullscreen,
+                    mode: bevy::window::WindowMode::Windowed,
                     ..Default::default()}),..Default::default()}),
 
         AtmospherePlugin,
         PlayerPlugin,
         ChunkPlugin,
-
     ));
 
     // Resources
@@ -76,7 +77,7 @@ fn main() {
         .add_systems(OnEnter(InitialChunkLoadState::Complete), setup_light)
         .add_systems(Update,
             check_if_loaded.run_if(in_state(InitialChunkLoadState::MeshesLoaded)),)
-        .add_systems(Update,(handle_tasks, add_break_detector,),)
+        .add_systems(Update,(handle_tasks, add_break_detector, debug_cage),)
         .add_systems(PostUpdate, handle_block_break_place);
 
     app.run();
@@ -86,6 +87,7 @@ fn setup(
     mut commands: Commands,
     mut materials: ResMut<Assets<StandardMaterial>>,
     asset_server: Res<AssetServer>,
+    mut camera_query: Query<&mut Projection>,
 ) {
     let texture_handle: Handle<Image> = asset_server.load("UV_map_example.png");
     let mat = materials.add(StandardMaterial {
@@ -95,6 +97,10 @@ fn setup(
     });
     commands.insert_resource(BlockMaterial(mat));
     commands.spawn(LoadedChunks(0));
+    let mut projection = camera_query.get_single_mut().unwrap();
+    if let Projection::Perspective(ref mut perspective) = *projection {
+        perspective.fov = PI / 2.6;
+    }
 }
 
 // System to handle chunk spawning / despawning every frame.
@@ -130,6 +136,11 @@ fn handle_tasks(
                 chunk_map.remove_ent(cords, Entity::PLACEHOLDER);
                 continue;
             }
+
+            // // Extract the vertex data for the physics engine.
+            // let pos_vertices = extract_position_vertex_data(&culled_mesh);
+            // // Extract the indices for the physics engine.
+            // let indices = extract_indices_data(&culled_mesh);
 
             let culled_mesh_handle = meshes.add(culled_mesh);
             let ent = commands
@@ -270,7 +281,6 @@ fn handle_block_break_place(
                 match event.change {
                     VoxelChange::Added => {
                         c.grid[block] = STONE;
-                        info!("\n\n!!!Placed block\n{block}, {onto}");
                     }
                     VoxelChange::Broken => c.grid[block] = AIR,
                 }

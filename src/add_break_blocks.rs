@@ -4,7 +4,7 @@ use bevy_meshem::prelude::*;
 
 const RAY_FORWARD_STEP: f32 = 0.01;
 const NANO_STEP_FACTOR: f32 = 15.0;
-const REACH_DISTANCE: u8 = 5;
+pub const REACH_DISTANCE: u8 = 5;
 
 #[derive(Event)]
 pub struct BlockChange {
@@ -50,7 +50,6 @@ pub fn add_break_detector(
                     .map(|&(x, y, z)| {
                         let tmp = one_d_cords(y, CHUNK_DIMS);
                         if let Some(block) = get_neighbor(tmp, z, CHUNK_DIMS) {
-                            // dbg!((x, block));
                             (x, block, Some((x, tmp)))
                         } else {
                             match z {
@@ -114,7 +113,6 @@ fn blocks_in_the_way(pos: Vec3, forward: Vec3, distance: u8) -> Vec<([i32; 2], [
                 r
             };
             let block_pos = position_to_chunk_position(point, CHUNK_DIMS);
-            dbg!(block_pos, face as usize);
             to_return.push((block_pos.0, block_pos.1, face));
         }
     }
