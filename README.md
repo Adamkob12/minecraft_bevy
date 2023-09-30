@@ -10,8 +10,10 @@ without any 3rd party crates / physics engines.
 Showcase:
 
 ***Most Recent Update: breaking / placing blocks, collision with terrain***
-[https://github.com/Adamkob12/minecraft_bevy/assets/46227443/b80b4c12-5f43-4335-8c7b-277cf34189b0]
+https://github.com/Adamkob12/minecraft_bevy/assets/46227443/fc8418a2-cd44-4f5c-aeb5-3129baca8700
+
+
 
 ***Terrain generation, run-time chunk loading/unloading:***
-[https://github.com/Adamkob12/minecraft_bevy/assets/46227443/f3c7828b-7142-44b5-ba03-2fd1a810d524]
+https://github.com/Adamkob12/minecraft_bevy/assets/46227443/f3c7828b-7142-44b5-ba03-2fd1a810d524
 
