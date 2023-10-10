@@ -32,6 +32,7 @@ impl Default for BlockRegistry {
                     (Forward, [1, 0]),
                     (Back, [1, 0]),
                 ],
+                0.05,
             ),
             dirt_block: generate_voxel_mesh(
                 VOXEL_DIMS,
@@ -44,6 +45,7 @@ impl Default for BlockRegistry {
                     (Forward, [2, 0]),
                     (Back, [2, 0]),
                 ],
+                0.05,
             ),
             stone_block: generate_voxel_mesh(
                 VOXEL_DIMS,
@@ -56,6 +58,7 @@ impl Default for BlockRegistry {
                     (Forward, [3, 0]),
                     (Back, [3, 0]),
                 ],
+                0.05,
             ),
         }
     }

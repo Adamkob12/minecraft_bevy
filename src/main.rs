@@ -25,7 +25,7 @@ pub use utils::*;
 
 // const FACTOR: usize = CHUNK_DIMS.0;
 // Render distance should be above 1.
-pub const RENDER_DISTANCE: i32 = 4;
+pub const RENDER_DISTANCE: i32 = 8;
 pub const GEN_SEED: u32 = 5;
 const CROSSHAIR_SIZE: f32 = 36.0;
 

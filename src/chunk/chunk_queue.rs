@@ -130,7 +130,8 @@ impl ChunkQueue {
                         let grid = generate_chunk(cords, &noise);
                         let t = mesh_grid(
                             CHUNK_DIMS,
-                            grid.to_vec(),
+                            &[Bottom],
+                            &grid,
                             &*breg,
                             MeshingAlgorithm::Culling,
                         )?;
