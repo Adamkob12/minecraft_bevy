@@ -1,4 +1,4 @@
-use crate::{one_d_cords, *};
+use crate::*;
 use bevy::prelude::*;
 use bevy_meshem::prelude::*;
 

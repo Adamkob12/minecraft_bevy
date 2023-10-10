@@ -3,6 +3,7 @@ mod add_break_blocks;
 mod block_reg;
 mod chunk;
 mod debug_3d;
+mod inventory;
 mod player;
 mod sky;
 mod utils;
@@ -17,6 +18,7 @@ use core::f32::consts::PI;
 #[allow(unused_imports)]
 use debug_3d::*;
 use futures_lite::future;
+use inventory::*;
 use noise::Perlin;
 use player::*;
 use sky::*;
@@ -49,12 +51,13 @@ fn main() {
             .set(WindowPlugin {
                 primary_window: Some(Window {
                     resizable: false,
-                    mode: bevy::window::WindowMode::Windowed,
+                    mode: bevy::window::WindowMode::BorderlessFullscreen,
                     ..Default::default()}),..Default::default()}),
 
         AtmospherePlugin,
         PlayerPlugin,
         ChunkPlugin,
+        InventoryPlugin,
     ));
 
     // Resources
@@ -94,6 +97,8 @@ fn setup(
     let mat = materials.add(StandardMaterial {
         base_color_texture: Some(texture_handle),
         reflectance: 0.0,
+        alpha_mode: AlphaMode::Mask(0.3),
+        perceptual_roughness: 0.75,
         ..default()
     });
     commands.insert_resource(BlockMaterial(mat));
@@ -208,6 +213,7 @@ fn handle_block_break_place(
     chunk_map: Res<ChunkMap>,
     mut chunk_query: Query<(Entity, &mut Chunk), With<ChunkCloseToPlayer>>,
     mut commands: Commands,
+    inv: Res<Inventory>,
 ) {
     for event in block_change.iter() {
         'A: for &(chunk, block, onto) in event.blocks.iter() {
@@ -267,12 +273,13 @@ fn handle_block_break_place(
                     continue 'A;
                 }
 
+                let new_block = inv.items[inv.current];
                 c.meta_data.log(
                     event.change,
                     block,
                     {
                         match event.change {
-                            VoxelChange::Added => STONE,
+                            VoxelChange::Added => new_block,
                             VoxelChange::Broken => vox,
                         }
                     },
@@ -281,7 +288,7 @@ fn handle_block_break_place(
 
                 match event.change {
                     VoxelChange::Added => {
-                        c.grid[block] = STONE;
+                        c.grid[block] = new_block;
                     }
                     VoxelChange::Broken => c.grid[block] = AIR,
                 }

@@ -8,6 +8,9 @@ pub const AIR: Block = 0;
 pub const DIRT: Block = 1;
 pub const GRASS: Block = 2;
 pub const STONE: Block = 3;
+pub const LIGHT_MAGIC: Block = 4;
+pub const DARK_MAGIC: Block = 5;
+pub const TRANSPERENT: Block = 6;
 
 pub const VOXEL_DIMS: [f32; 3] = [1.0, 1.0, 1.0];
 
@@ -16,6 +19,9 @@ pub struct BlockRegistry {
     grass_block: Mesh,
     dirt_block: Mesh,
     stone_block: Mesh,
+    light_magic_block: Mesh,
+    dark_magic_block: Mesh,
+    transperent_block: Mesh,
 }
 
 impl Default for BlockRegistry {
@@ -32,7 +38,7 @@ impl Default for BlockRegistry {
                     (Forward, [1, 0]),
                     (Back, [1, 0]),
                 ],
-                0.05,
+                0.02,
             ),
             dirt_block: generate_voxel_mesh(
                 VOXEL_DIMS,
@@ -45,7 +51,7 @@ impl Default for BlockRegistry {
                     (Forward, [2, 0]),
                     (Back, [2, 0]),
                 ],
-                0.05,
+                0.02,
             ),
             stone_block: generate_voxel_mesh(
                 VOXEL_DIMS,
@@ -58,7 +64,46 @@ impl Default for BlockRegistry {
                     (Forward, [3, 0]),
                     (Back, [3, 0]),
                 ],
-                0.05,
+                0.02,
+            ),
+            light_magic_block: generate_voxel_mesh(
+                VOXEL_DIMS,
+                [4, 4],
+                [
+                    (Top, [2, 1]),
+                    (Bottom, [2, 1]),
+                    (Right, [2, 1]),
+                    (Left, [2, 1]),
+                    (Forward, [2, 1]),
+                    (Back, [2, 1]),
+                ],
+                0.02,
+            ),
+            dark_magic_block: generate_voxel_mesh(
+                VOXEL_DIMS,
+                [4, 4],
+                [
+                    (Top, [1, 1]),
+                    (Bottom, [1, 1]),
+                    (Right, [1, 1]),
+                    (Left, [1, 1]),
+                    (Forward, [1, 1]),
+                    (Back, [1, 1]),
+                ],
+                0.02,
+            ),
+            transperent_block: generate_voxel_mesh(
+                VOXEL_DIMS,
+                [4, 4],
+                [
+                    (Top, [3, 1]),
+                    (Bottom, [3, 1]),
+                    (Right, [3, 1]),
+                    (Left, [3, 1]),
+                    (Forward, [3, 1]),
+                    (Back, [3, 1]),
+                ],
+                0.02,
             ),
         }
     }
@@ -93,6 +138,9 @@ impl VoxelRegistry for BlockRegistry {
             DIRT => Some(&self.dirt_block),
             GRASS => Some(&self.grass_block),
             STONE => Some(&self.stone_block),
+            LIGHT_MAGIC => Some(&self.light_magic_block),
+            DARK_MAGIC => Some(&self.dark_magic_block),
+            TRANSPERENT => Some(&self.transperent_block),
             _ => None,
         }
     }
