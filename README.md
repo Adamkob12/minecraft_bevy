@@ -1,4 +1,4 @@
-# minecraft_bevy
+# Minecraft with Bevy
 ![Screenshot 2023-10-11 at 0 35 01](https://github.com/Adamkob12/minecraft_bevy/assets/46227443/ce7d8eaa-d3d9-4735-a3a0-59340525db51)
 
 
