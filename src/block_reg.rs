@@ -11,6 +11,8 @@ pub const STONE: Block = 3;
 pub const LIGHT_MAGIC: Block = 4;
 pub const DARK_MAGIC: Block = 5;
 pub const TRANSPERENT: Block = 6;
+pub const WOOD_DARK_GREY: Block = 7;
+pub const PINK_LEAVES: Block = 8;
 
 pub const VOXEL_DIMS: [f32; 3] = [1.0, 1.0, 1.0];
 
@@ -22,6 +24,8 @@ pub struct BlockRegistry {
     light_magic_block: Mesh,
     dark_magic_block: Mesh,
     transperent_block: Mesh,
+    wood_dark_grey_block: Mesh,
+    pink_leaves: Mesh,
 }
 
 impl Default for BlockRegistry {
@@ -105,6 +109,32 @@ impl Default for BlockRegistry {
                 ],
                 0.02,
             ),
+            wood_dark_grey_block: generate_voxel_mesh(
+                VOXEL_DIMS,
+                [4, 4],
+                [
+                    (Top, [0, 2]),
+                    (Bottom, [0, 2]),
+                    (Right, [0, 2]),
+                    (Left, [0, 2]),
+                    (Forward, [0, 2]),
+                    (Back, [0, 2]),
+                ],
+                0.02,
+            ),
+            pink_leaves: generate_voxel_mesh(
+                VOXEL_DIMS,
+                [4, 4],
+                [
+                    (Top, [1, 2]),
+                    (Bottom, [1, 2]),
+                    (Right, [1, 2]),
+                    (Left, [1, 2]),
+                    (Forward, [1, 2]),
+                    (Back, [1, 2]),
+                ],
+                0.02,
+            ),
         }
     }
 }
@@ -141,6 +171,8 @@ impl VoxelRegistry for BlockRegistry {
             LIGHT_MAGIC => Some(&self.light_magic_block),
             DARK_MAGIC => Some(&self.dark_magic_block),
             TRANSPERENT => Some(&self.transperent_block),
+            WOOD_DARK_GREY => Some(&self.wood_dark_grey_block),
+            PINK_LEAVES => Some(&self.pink_leaves),
             _ => None,
         }
     }
