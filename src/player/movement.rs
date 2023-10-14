@@ -8,9 +8,10 @@ use bevy::{
     prelude::*,
     render::camera::TemporalJitter,
 };
+use smooth_bevy_cameras::LookTransform;
 #[allow(unused_imports)]
 use smooth_bevy_cameras::{
-    controllers::fps::{FpsCameraBundle, FpsCameraController, FpsCameraPlugin},
+    controllers::fps::{ControlEvent, FpsCameraBundle, FpsCameraController, FpsCameraPlugin},
     LookTransformPlugin,
 };
 
@@ -55,17 +56,6 @@ pub(super) fn setup_player(mut commands: Commands) {
             },
             ..Default::default()
         });
-    // .insert(FpsCameraBundle::new(
-    //     FpsCameraController {
-    //         enabled: true,
-    //         mouse_rotate_sensitivity: Vec2::new(0.17, 0.17),
-    //         translate_sensitivity: 8.0,
-    //         smoothing_weight: 0.4,
-    //     },
-    //     Vec3::new(0.0, HEIGHT as f32 * 2.0, 0.0),
-    //     Vec3::new(5.0, HEIGHT as f32 * 2.0, 5.0),
-    //     Vec3::Y,
-    // ));
 }
 
 /// Handles keyboard input and movement
@@ -174,13 +164,14 @@ pub(super) fn player_move(
             if tmp != chunk.0 {
                 chunk.0 = tmp;
             }
+            // look_transform.eye = transform.translation;
         }
     } else {
         warn!("Primary window not found for `player_move`!");
     }
 }
 
-/// Handles looking around if cursor is locked
+// /// Handles looking around if cursor is locked
 pub(super) fn player_look(
     settings: Res<MovementSettings>,
     primary_window: Query<&Window, With<PrimaryWindow>>,
