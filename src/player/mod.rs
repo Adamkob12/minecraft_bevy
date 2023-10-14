@@ -1,4 +1,10 @@
 pub mod movement;
+#[allow(unused_imports)]
+use crate::utils::{one_d_cords, position_to_chunk};
+use crate::*;
+use bevy::ecs::event::{Events, ManualEventReader};
+use bevy::input::mouse::MouseMotion;
+use bevy::window::{CursorGrabMode, PrimaryWindow};
 use bevy::{
     core_pipeline::experimental::taa::{TemporalAntiAliasBundle, TemporalAntiAliasPlugin},
     pbr::{
@@ -8,17 +14,6 @@ use bevy::{
     prelude::*,
     render::camera::TemporalJitter,
 };
-#[allow(unused_imports)]
-use smooth_bevy_cameras::{
-    controllers::fps::{FpsCameraBundle, FpsCameraController, FpsCameraPlugin},
-    LookTransformPlugin,
-};
-
-use crate::utils::{one_d_cords, position_to_chunk};
-use crate::*;
-use bevy::ecs::event::{Events, ManualEventReader};
-use bevy::input::mouse::MouseMotion;
-use bevy::window::{CursorGrabMode, PrimaryWindow};
 use movement::*;
 // ALWAYS ODD!
 pub(crate) const CAGE_SIZE: usize = 7;

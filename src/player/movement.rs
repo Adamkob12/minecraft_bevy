@@ -8,12 +8,6 @@ use bevy::{
     prelude::*,
     render::camera::TemporalJitter,
 };
-use smooth_bevy_cameras::LookTransform;
-#[allow(unused_imports)]
-use smooth_bevy_cameras::{
-    controllers::fps::{ControlEvent, FpsCameraBundle, FpsCameraController, FpsCameraPlugin},
-    LookTransformPlugin,
-};
 
 /// Grabs the cursor when game first starts
 pub(super) fn initial_grab_cursor(mut primary_window: Query<&mut Window, With<PrimaryWindow>>) {
