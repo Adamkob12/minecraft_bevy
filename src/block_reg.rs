@@ -42,7 +42,7 @@ impl Default for BlockRegistry {
                     (Forward, [1, 0]),
                     (Back, [1, 0]),
                 ],
-                0.02,
+                0.1,
                 Some(0.75),
             ),
             dirt_block: generate_voxel_mesh(
@@ -56,7 +56,7 @@ impl Default for BlockRegistry {
                     (Forward, [2, 0]),
                     (Back, [2, 0]),
                 ],
-                0.02,
+                0.1,
                 Some(0.75),
             ),
             stone_block: generate_voxel_mesh(
@@ -70,7 +70,7 @@ impl Default for BlockRegistry {
                     (Forward, [3, 0]),
                     (Back, [3, 0]),
                 ],
-                0.02,
+                0.1,
                 Some(0.75),
             ),
             light_magic_block: generate_voxel_mesh(
@@ -84,7 +84,7 @@ impl Default for BlockRegistry {
                     (Forward, [2, 1]),
                     (Back, [2, 1]),
                 ],
-                0.02,
+                0.1,
                 Some(0.75),
             ),
             dark_magic_block: generate_voxel_mesh(
@@ -98,7 +98,7 @@ impl Default for BlockRegistry {
                     (Forward, [1, 1]),
                     (Back, [1, 1]),
                 ],
-                0.02,
+                0.1,
                 Some(0.75),
             ),
             transperent_block: generate_voxel_mesh(
@@ -112,7 +112,7 @@ impl Default for BlockRegistry {
                     (Forward, [3, 1]),
                     (Back, [3, 1]),
                 ],
-                0.02,
+                0.1,
                 Some(0.75),
             ),
             wood_dark_grey_block: generate_voxel_mesh(
@@ -126,7 +126,7 @@ impl Default for BlockRegistry {
                     (Forward, [0, 2]),
                     (Back, [0, 2]),
                 ],
-                0.02,
+                0.1,
                 Some(0.75),
             ),
             pink_leaves: generate_voxel_mesh(
@@ -140,7 +140,7 @@ impl Default for BlockRegistry {
                     (Forward, [1, 2]),
                     (Back, [1, 2]),
                 ],
-                0.02,
+                0.1,
                 Some(0.75),
             ),
         }

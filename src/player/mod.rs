@@ -1,4 +1,18 @@
 pub mod movement;
+use bevy::{
+    core_pipeline::experimental::taa::{TemporalAntiAliasBundle, TemporalAntiAliasPlugin},
+    pbr::{
+        ScreenSpaceAmbientOcclusionBundle, ScreenSpaceAmbientOcclusionQualityLevel,
+        ScreenSpaceAmbientOcclusionSettings,
+    },
+    prelude::*,
+    render::camera::TemporalJitter,
+};
+#[allow(unused_imports)]
+use smooth_bevy_cameras::{
+    controllers::fps::{FpsCameraBundle, FpsCameraController, FpsCameraPlugin},
+    LookTransformPlugin,
+};
 
 use crate::utils::{one_d_cords, position_to_chunk};
 use crate::*;
@@ -157,15 +171,20 @@ pub struct PlayerPlugin;
 impl Plugin for PlayerPlugin {
     fn build(&self, app: &mut App) {
         assert!(CAGE_SIZE % 2 == 1, "Cage size should always be odd!");
-        app.init_resource::<InputState>()
-            .init_resource::<MovementSettings>()
-            .init_resource::<KeyBindings>()
-            .add_systems(Startup, setup_player)
-            .add_systems(Startup, initial_grab_cursor)
-            .add_systems(
-                Update,
-                (player_move, player_look, cursor_grab, update_cage)
-                    .run_if(in_state(InitialChunkLoadState::Complete)),
-            );
+        app.add_plugins((
+            LookTransformPlugin,
+            FpsCameraPlugin::default(),
+            TemporalAntiAliasPlugin,
+        ))
+        .init_resource::<InputState>()
+        .init_resource::<MovementSettings>()
+        .init_resource::<KeyBindings>()
+        .add_systems(Startup, setup_player)
+        .add_systems(Startup, initial_grab_cursor)
+        .add_systems(
+            Update,
+            (player_move, player_look, cursor_grab, update_cage)
+                .run_if(in_state(InitialChunkLoadState::Complete)),
+        );
     }
 }

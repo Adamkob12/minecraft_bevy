@@ -9,5 +9,6 @@ edition = "2021"
 bevy = "0.11.3"
 bevy_atmosphere = "0.7.0"
 bevy_meshem = { git = "https://github.com/Adamkob12/bevy_meshem.git" }
+smooth-bevy-cameras = {git = "https://github.com/bonsairobo/smooth-bevy-cameras.git"}
 futures-lite = "1.13.0"
 noise = "0.8.2"

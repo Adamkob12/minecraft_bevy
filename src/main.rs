@@ -1,4 +1,4 @@
-// #![allow(dead_code, unused_variables, unused_imports)]
+#![allow(dead_code, unused_variables, unused_imports)]
 mod add_break_blocks;
 mod block_reg;
 mod chunk;
@@ -65,7 +65,7 @@ fn main() {
 
         .init_resource::<BlockRegistry>()
         .insert_resource(AmbientLight {
-                brightness: 1.15, color: Color::WHITE})
+                brightness: 1.0, color: Color::ANTIQUE_WHITE})
         .insert_resource(CycleTimer(Timer::new(
                 bevy::utils::Duration::from_millis(50),
                 TimerMode::Repeating,)))

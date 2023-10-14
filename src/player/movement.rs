@@ -1,4 +1,19 @@
 use super::*;
+use bevy::{
+    core_pipeline::experimental::taa::{TemporalAntiAliasBundle, TemporalAntiAliasPlugin},
+    pbr::{
+        ScreenSpaceAmbientOcclusionBundle, ScreenSpaceAmbientOcclusionQualityLevel,
+        ScreenSpaceAmbientOcclusionSettings,
+    },
+    prelude::*,
+    render::camera::TemporalJitter,
+};
+#[allow(unused_imports)]
+use smooth_bevy_cameras::{
+    controllers::fps::{FpsCameraBundle, FpsCameraController, FpsCameraPlugin},
+    LookTransformPlugin,
+};
+
 /// Grabs the cursor when game first starts
 pub(super) fn initial_grab_cursor(mut primary_window: Query<&mut Window, With<PrimaryWindow>>) {
     if let Ok(mut window) = primary_window.get_single_mut() {
@@ -10,29 +25,47 @@ pub(super) fn initial_grab_cursor(mut primary_window: Query<&mut Window, With<Pr
 
 /// Spawns the `Camera3dBundle` to be controlled
 pub(super) fn setup_player(mut commands: Commands) {
-    commands.spawn((
-        Camera3dBundle {
-            transform: Transform::from_xyz(
-                // -RENDER_DISTANCE as f32 * WIDTH as f32,
-                0.0,
-                HEIGHT as f32 * 2.0, // -RENDER_DISTANCE as f32 * LENGTH as f32,
-                0.0,
-            )
-            .looking_to(Vec3::new(5.0, -1.0, 5.0), Vec3::Y),
+    commands
+        .spawn((
+            Camera3dBundle {
+                transform: Transform::from_xyz(
+                    // -RENDER_DISTANCE as f32 * WIDTH as f32,
+                    0.0,
+                    HEIGHT as f32 * 2.0, // -RENDER_DISTANCE as f32 * LENGTH as f32,
+                    0.0,
+                )
+                .looking_to(Vec3::new(5.0, -1.0, 5.0), Vec3::Y),
+                ..Default::default()
+            },
+            Cage {
+                blocks: [AIR; CAGE_LEN],
+            },
+            FlyCam,
+            CurrentChunk([0, 0]),
+            AtmosphereCamera::default(),
+            VelocityVectors {
+                xV: Vec3::ZERO,
+                yV: Vec3::ZERO,
+                zV: Vec3::ZERO,
+            },
+        ))
+        .insert(ScreenSpaceAmbientOcclusionBundle {
+            settings: ScreenSpaceAmbientOcclusionSettings {
+                quality_level: ScreenSpaceAmbientOcclusionQualityLevel::Low,
+            },
             ..Default::default()
-        },
-        Cage {
-            blocks: [AIR; CAGE_LEN],
-        },
-        FlyCam,
-        CurrentChunk([0, 0]),
-        AtmosphereCamera::default(),
-        VelocityVectors {
-            xV: Vec3::ZERO,
-            yV: Vec3::ZERO,
-            zV: Vec3::ZERO,
-        },
-    ));
+        });
+    // .insert(FpsCameraBundle::new(
+    //     FpsCameraController {
+    //         enabled: true,
+    //         mouse_rotate_sensitivity: Vec2::new(0.17, 0.17),
+    //         translate_sensitivity: 8.0,
+    //         smoothing_weight: 0.4,
+    //     },
+    //     Vec3::new(0.0, HEIGHT as f32 * 2.0, 0.0),
+    //     Vec3::new(5.0, HEIGHT as f32 * 2.0, 5.0),
+    //     Vec3::Y,
+    // ));
 }
 
 /// Handles keyboard input and movement

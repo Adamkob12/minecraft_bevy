@@ -1,5 +1,5 @@
 use super::{CHUNK_LEN, HEIGHT, LENGTH, NOISE_FACTOR_CONT, NOISE_FACTOR_SCALE, WIDTH};
-use crate::block_reg::{AIR, DIRT, GRASS /* STONE */};
+use crate::block_reg::*;
 use noise::NoiseFn;
 
 // Generate chunk from noise
