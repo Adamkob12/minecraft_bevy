@@ -46,7 +46,7 @@ pub(super) fn setup_player(mut commands: Commands) {
         ))
         .insert(ScreenSpaceAmbientOcclusionBundle {
             settings: ScreenSpaceAmbientOcclusionSettings {
-                quality_level: ScreenSpaceAmbientOcclusionQualityLevel::Low,
+                quality_level: ScreenSpaceAmbientOcclusionQualityLevel::High,
             },
             ..Default::default()
         });

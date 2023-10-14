@@ -31,7 +31,7 @@ pub fn setup_light(mut commands: Commands, primary_window: Query<&Window, With<P
             format!("+"),
             TextStyle {
                 font_size: CROSSHAIR_SIZE,
-                color: Color::LIME_GREEN,
+                color: Color::WHITE,
                 ..default()
             },
         )
@@ -58,8 +58,8 @@ pub fn daylight_cycle(
     atmosphere.sun_position = Vec3::new(0.0, 0.9, 0.7);
 
     if let Some((mut light_trans, mut directional)) = query.single_mut().into() {
-        let t = Transform::from_xyz(0.0, 0.0, 0.0).looking_to(Vec3::new(0.4, -1.0, 0.4), Vec3::Y);
+        let t = Transform::from_xyz(0.0, 0.0, 0.0).looking_to(Vec3::new(0.6, -1.0, 0.6), Vec3::Y);
         light_trans.rotation = t.rotation;
-        directional.illuminance = 5000.0;
+        directional.illuminance = 9000.0;
     }
 }

@@ -29,7 +29,7 @@ pub use utils::*;
 // Render distance should be above 1.
 pub const RENDER_DISTANCE: i32 = 8;
 pub const GEN_SEED: u32 = 5;
-const CROSSHAIR_SIZE: f32 = 36.0;
+const CROSSHAIR_SIZE: f32 = 22.0;
 
 #[derive(Resource, Clone)]
 pub struct BlockMaterial(Handle<StandardMaterial>);
@@ -65,7 +65,7 @@ fn main() {
 
         .init_resource::<BlockRegistry>()
         .insert_resource(AmbientLight {
-                brightness: 1.0, color: Color::ANTIQUE_WHITE})
+                brightness: 1.2, color: Color::ANTIQUE_WHITE})
         .insert_resource(CycleTimer(Timer::new(
                 bevy::utils::Duration::from_millis(50),
                 TimerMode::Repeating,)))
