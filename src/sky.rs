@@ -59,6 +59,6 @@ pub fn daylight_cycle(
 
     if let Some((mut light_trans, mut directional)) = query.single_mut().into() {
         light_trans.rotation = Quat::from_rotation_x(-2.75);
-        directional.illuminance = 15000.0;
+        directional.illuminance = 8000.0;
     }
 }

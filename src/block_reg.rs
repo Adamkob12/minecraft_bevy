@@ -43,6 +43,7 @@ impl Default for BlockRegistry {
                     (Back, [1, 0]),
                 ],
                 0.02,
+                Some(0.75),
             ),
             dirt_block: generate_voxel_mesh(
                 VOXEL_DIMS,
@@ -56,6 +57,7 @@ impl Default for BlockRegistry {
                     (Back, [2, 0]),
                 ],
                 0.02,
+                Some(0.75),
             ),
             stone_block: generate_voxel_mesh(
                 VOXEL_DIMS,
@@ -69,6 +71,7 @@ impl Default for BlockRegistry {
                     (Back, [3, 0]),
                 ],
                 0.02,
+                Some(0.75),
             ),
             light_magic_block: generate_voxel_mesh(
                 VOXEL_DIMS,
@@ -82,6 +85,7 @@ impl Default for BlockRegistry {
                     (Back, [2, 1]),
                 ],
                 0.02,
+                Some(0.75),
             ),
             dark_magic_block: generate_voxel_mesh(
                 VOXEL_DIMS,
@@ -95,6 +99,7 @@ impl Default for BlockRegistry {
                     (Back, [1, 1]),
                 ],
                 0.02,
+                Some(0.75),
             ),
             transperent_block: generate_voxel_mesh(
                 VOXEL_DIMS,
@@ -108,6 +113,7 @@ impl Default for BlockRegistry {
                     (Back, [3, 1]),
                 ],
                 0.02,
+                Some(0.75),
             ),
             wood_dark_grey_block: generate_voxel_mesh(
                 VOXEL_DIMS,
@@ -121,6 +127,7 @@ impl Default for BlockRegistry {
                     (Back, [0, 2]),
                 ],
                 0.02,
+                Some(0.75),
             ),
             pink_leaves: generate_voxel_mesh(
                 VOXEL_DIMS,
@@ -134,6 +141,7 @@ impl Default for BlockRegistry {
                     (Back, [1, 2]),
                 ],
                 0.02,
+                Some(0.75),
             ),
         }
     }
@@ -147,6 +155,7 @@ impl VoxelRegistry for BlockRegistry {
             Mesh::ATTRIBUTE_POSITION,
             Mesh::ATTRIBUTE_UV_0,
             Mesh::ATTRIBUTE_NORMAL,
+            Mesh::ATTRIBUTE_COLOR,
         ]
     }
 
@@ -158,22 +167,22 @@ impl VoxelRegistry for BlockRegistry {
         [0.0, 0.0, 0.0]
     }
 
-    fn is_voxel(&self, voxel: &Self::Voxel) -> bool {
-        *voxel != AIR
+    fn is_covering(&self, voxel: &Self::Voxel, _side: prelude::Face) -> bool {
+        *voxel != AIR && *voxel != PINK_LEAVES && *voxel != TRANSPERENT
     }
 
-    fn get_mesh(&self, voxel: &Self::Voxel) -> Option<&Mesh> {
+    fn get_mesh(&self, voxel: &Self::Voxel) -> VoxelMesh<&Mesh> {
         match *voxel {
-            AIR => None,
-            DIRT => Some(&self.dirt_block),
-            GRASS => Some(&self.grass_block),
-            STONE => Some(&self.stone_block),
-            LIGHT_MAGIC => Some(&self.light_magic_block),
-            DARK_MAGIC => Some(&self.dark_magic_block),
-            TRANSPERENT => Some(&self.transperent_block),
-            WOOD_DARK_GREY => Some(&self.wood_dark_grey_block),
-            PINK_LEAVES => Some(&self.pink_leaves),
-            _ => None,
+            AIR => VoxelMesh::Null,
+            DIRT => VoxelMesh::NormalCube(&self.dirt_block),
+            GRASS => VoxelMesh::NormalCube(&self.grass_block),
+            STONE => VoxelMesh::NormalCube(&self.stone_block),
+            LIGHT_MAGIC => VoxelMesh::NormalCube(&self.light_magic_block),
+            DARK_MAGIC => VoxelMesh::NormalCube(&self.dark_magic_block),
+            TRANSPERENT => VoxelMesh::NormalCube(&self.transperent_block),
+            WOOD_DARK_GREY => VoxelMesh::NormalCube(&self.wood_dark_grey_block),
+            PINK_LEAVES => VoxelMesh::NormalCube(&self.pink_leaves),
+            _ => VoxelMesh::Null,
         }
     }
 }

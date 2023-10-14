@@ -134,6 +134,10 @@ impl ChunkQueue {
                             &grid,
                             &*breg,
                             MeshingAlgorithm::Culling,
+                            Some(PbsParameters {
+                                pbs_value: 0.12,
+                                pbs_smoothing: 0.5,
+                            }),
                         )?;
                         Some((t, grid, cords))
                     });
