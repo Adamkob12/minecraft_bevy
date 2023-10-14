@@ -3,6 +3,7 @@
 .helix/*
 *.excalidraw
 
+assets/*.xcf
 /target
 Cargo.lock
 # Created by https://www.toptal.com/developers/gitignore/api/rust,macos,windows,linux,vscode,intellij+all
