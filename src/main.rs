@@ -34,6 +34,9 @@ const CROSSHAIR_SIZE: f32 = 22.0;
 #[derive(Resource, Clone)]
 pub struct BlockMaterial(Handle<StandardMaterial>);
 
+#[derive(Resource)]
+pub struct GlobalSecondsCounter(u128);
+
 #[derive(Component)]
 struct LoadedChunks(usize);
 
@@ -69,6 +72,7 @@ fn main() {
         .insert_resource(CycleTimer(Timer::new(
                 bevy::utils::Duration::from_millis(50),
                 TimerMode::Repeating,)))
+        .insert_resource(GlobalSecondsCounter(0))
         .insert_resource(AtmosphereModel::default());
 
     // Events
@@ -82,11 +86,16 @@ fn main() {
         .add_systems(Update,
             check_if_loaded.run_if(in_state(InitialChunkLoadState::MeshesLoaded)),)
         .add_systems(Update,(handle_tasks, add_break_detector, /* debug_cage */),)
-        .add_systems(PostUpdate, handle_block_break_place);
+        .add_systems(PostUpdate, (handle_block_break_place, update_seconds));
 
     app.run();
 }
 
+fn update_seconds(time: Res<Time>, mut sec: ResMut<GlobalSecondsCounter>) {
+    if time.elapsed_seconds() as u128 != sec.0 {
+        sec.0 = time.elapsed_seconds() as u128;
+    }
+}
 fn setup(
     mut commands: Commands,
     mut materials: ResMut<Assets<StandardMaterial>>,
@@ -167,6 +176,9 @@ fn handle_tasks(
                         cords,
                         meta_data: metadata,
                     },
+                    ToCull {
+                        culled: [true, true, false, false, false, false],
+                    },
                 ))
                 .id();
             // Remember that the ChunkMap already as an Entity Placeholder stored (explanation in
@@ -207,14 +219,15 @@ fn check_if_loaded(
     info!("\nInternal Log:\nChunk entities have been successfully spawned");
 }
 
-// Whoever reads this funtion sometime in the future, Please forgive me.
 fn handle_block_break_place(
     mut block_change: EventReader<BlockChange>,
     chunk_map: Res<ChunkMap>,
     mut chunk_query: Query<(Entity, &mut Chunk), With<ChunkCloseToPlayer>>,
     mut commands: Commands,
     inv: Res<Inventory>,
+    breg: Res<BlockRegistry>,
 ) {
+    let breg = breg.into_inner();
     for event in block_change.iter() {
         'A: for &(chunk, block, onto) in event.blocks.iter() {
             let ent = chunk_map.get_ent(chunk).expect(
@@ -241,21 +254,42 @@ fn handle_block_break_place(
             if onto_ent != Entity::PLACEHOLDER {
                 assert_ne!(onto_chunk[0], u16::max_value());
             }
-            'B: for (e, mut c) in chunk_query.iter_mut() {
-                if e != ent {
-                    continue 'B;
-                }
-                assert_eq!(c.cords, chunk);
-                let mut neighboring_voxels: [Option<Block>; 6] = [None; 6];
+            let mut neighboring_voxels: [Option<Block>; 6] = [None; 6];
+            let mut neigbhoring_voxels_across_chunks: [(
+                Option<Block>,
+                [i32; 2],
+                Entity,
+                usize,
+                Face,
+            ); 6] = [(None, [0, 0], Entity::PLACEHOLDER, 0, Top); 6];
 
-                for i in 0..6 {
-                    neighboring_voxels[i] =
-                        if let Some(a) = get_neighbor(block, Face::from(i), CHUNK_DIMS) {
-                            Some(c.grid[a])
-                        } else {
-                            None
-                        }
+            for (face, neighbor) in get_neigbhors_from_across_chunks(CHUNK_DIMS, block) {
+                neigbhoring_voxels_across_chunks[face as usize] = {
+                    let neigbhoring_chunk_cords = match face {
+                        Top | Bottom => continue,
+                        Right => [chunk[0] + 1, chunk[1]],
+                        Left => [chunk[0] - 1, chunk[1]],
+                        Back => [chunk[0], chunk[1] + 1],
+                        Forward => [chunk[0], chunk[1] - 1],
+                    };
+                    let neig_chunk_ent = chunk_map.get_ent(neigbhoring_chunk_cords).unwrap();
+                    let neig_chunk_grid = chunk_query.get(neig_chunk_ent).unwrap().1.grid;
+                    if !breg.is_covering(&neig_chunk_grid[neighbor], face.opposite()) {
+                        continue;
+                    }
+                    (
+                        Some(neig_chunk_grid[neighbor]),
+                        neigbhoring_chunk_cords,
+                        neig_chunk_ent,
+                        neighbor,
+                        face,
+                    )
                 }
+            }
+
+            if let Ok((e, mut c)) = chunk_query.get_mut(ent) {
+                assert_eq!(c.cords, chunk);
+
                 let vox = c.grid[block];
                 let onto = if onto == usize::max_value() {
                     u16::max_value()
@@ -263,6 +297,14 @@ fn handle_block_break_place(
                     onto_chunk[onto]
                 };
 
+                for i in 0..6 {
+                    neighboring_voxels[i] =
+                        if let Some(a) = get_neighbor(block, Face::from(i), CHUNK_DIMS) {
+                            Some(c.grid[a])
+                        } else {
+                            continue;
+                        }
+                }
                 if vox == AIR && matches!(event.change, VoxelChange::Broken) {
                     continue 'A;
                 }
@@ -281,6 +323,7 @@ fn handle_block_break_place(
                         match event.change {
                             VoxelChange::Added => new_block,
                             VoxelChange::Broken => vox,
+                            _ => panic!("Shouldn't happen"),
                         }
                     },
                     neighboring_voxels,
@@ -290,7 +333,26 @@ fn handle_block_break_place(
                     VoxelChange::Added => {
                         c.grid[block] = new_block;
                     }
-                    VoxelChange::Broken => c.grid[block] = AIR,
+                    VoxelChange::Broken => {
+                        c.grid[block] = AIR;
+                        {
+                            for (voxel, chunk, ent, index, face) in neigbhoring_voxels_across_chunks
+                            {
+                                if let Some(block) = voxel {
+                                    let mut tmp = [None; 6];
+                                    tmp[face.opposite() as usize] = Some(vox);
+                                    chunk_query.get_mut(ent).unwrap().1.meta_data.log(
+                                        VoxelChange::AddFaces,
+                                        index,
+                                        block,
+                                        tmp,
+                                    );
+                                    commands.entity(ent).insert(ToUpdate);
+                                }
+                            }
+                        }
+                    }
+                    _ => panic!("Shouldn't happen"),
                 }
 
                 commands.entity(e).insert(ToUpdate);

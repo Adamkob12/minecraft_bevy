@@ -1,3 +1,5 @@
+use crate::Face;
+use crate::Face::*;
 use bevy::prelude::Vec3;
 
 pub fn position_to_chunk(pos: Vec3, chunk_dims: (usize, usize, usize)) -> [i32; 2] {
@@ -51,6 +53,22 @@ pub const fn three_d_cords(oned: usize, dims: (usize, usize, usize)) -> (usize, 
     (w, h, l)
 }
 
+pub const fn three_d_cords_arr(oned: usize, dims: (usize, usize, usize)) -> [usize; 3] {
+    let height = dims.2;
+    let length = dims.1;
+    let width = dims.0;
+
+    let h = (oned / (length * width)) as usize;
+    let l = ((oned - h * (length * width)) / width) as usize;
+    let w = (oned - h * (length * width) - l * width) as usize;
+
+    assert!(w < width, "Out of bounds to convert into 3d coordinate.");
+    assert!(h < height, "Out of bounds to convert into 3d coordinate.");
+    assert!(l < length, "Out of bounds to convert into 3d coordinate.");
+
+    [w, h, l]
+}
+
 pub const fn one_d_cords(threed: [usize; 3], dims: (usize, usize, usize)) -> usize {
     assert!(threed[0] < dims.0, "3d coordinate out of dimension bounds.");
     assert!(threed[1] < dims.1, "3d coordinate out of dimension bounds.");
@@ -73,6 +91,7 @@ pub fn extract_position_vertex_data(mesh: &Mesh) -> Vec<Vec3> {
 
 // Extract the indices for the physics engine.
 use bevy::render::mesh::Indices;
+use bevy_meshem::Dimensions;
 pub fn extract_indices_data(mesh: &Mesh) -> Vec<[u32; 3]> {
     let Indices::U32(indices) = mesh.indices().unwrap() else {
         panic!("Indices data shoud be in `Indices::U32` format")
@@ -80,5 +99,67 @@ pub fn extract_indices_data(mesh: &Mesh) -> Vec<[u32; 3]> {
     indices
         .chunks(3)
         .map(|chunk| [chunk[0], chunk[1], chunk[2]])
+        .collect()
+}
+
+pub fn iter_faces_of_chunk(dims: Dimensions, face: Face) -> impl Iterator<Item = usize> {
+    let all = 0..(dims.0 * dims.1 * dims.2);
+    let m = [dims.1 - 1, 0, dims.0 - 1, 0, dims.2 - 1, 0];
+    let i = match face {
+        Top | Bottom => 1,
+        Right | Left => 0,
+        Forward | Back => 2,
+    };
+    let all = all.filter(move |x| three_d_cords_arr(*x, dims)[i] == m[face as usize]);
+    all
+}
+
+pub fn is_block_on_edge(dims: Dimensions, index: usize) -> Vec<Face> {
+    let mut to_return = vec![];
+    let all = 0..(dims.0 * dims.1 * dims.2);
+    let m = [dims.1 - 1, 0, dims.0 - 1, 0, dims.2 - 1, 0];
+    for i in 0..6 {
+        let face = Face::from(i);
+        let j = match face {
+            Top | Bottom => 1,
+            Right | Left => 0,
+            Forward | Back => 2,
+        };
+        if three_d_cords_arr(index, dims)[j] == m[face as usize] {
+            to_return.push(face);
+        }
+    }
+    to_return
+}
+
+pub fn get_neigbhor_across_chunk(dims: Dimensions, index: usize, face: Face) -> usize {
+    for f in is_block_on_edge(dims, index) {
+        if f as usize == face as usize {
+            return match face {
+                Right => index - dims.0 + 1,
+                Left => index + dims.0 - 1,
+                Back => index - dims.0 * (dims.2 - 1),
+                Forward => index + dims.0 * (dims.2 - 1),
+                _ => panic!("Shouldn't happen"),
+            };
+        }
+    }
+    panic!("`get_neigbhor_across_chunk` was called on a block that wasn't on the edge of a chunk");
+}
+
+pub fn get_neigbhors_from_across_chunks(dims: Dimensions, index: usize) -> Vec<(Face, usize)> {
+    let edges = is_block_on_edge(dims, index);
+    if edges.is_empty() {
+        return vec![];
+    }
+    edges
+        .iter()
+        .filter_map(|f| {
+            if (*f as usize) < 2 {
+                None
+            } else {
+                Some((*f, get_neigbhor_across_chunk(dims, index, *f)))
+            }
+        })
         .collect()
 }

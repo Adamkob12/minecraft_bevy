@@ -47,26 +47,36 @@ pub fn add_break_detector(
                 blocks: blocks_in_the_way(pos, forward, REACH_DISTANCE)
                     .iter()
                     .skip(1)
-                    .map(|&(x, y, z)| {
+                    .filter_map(|&(x, y, z)| {
                         let tmp = one_d_cords(y, CHUNK_DIMS);
                         if let Some(block) = get_neighbor(tmp, z, CHUNK_DIMS) {
-                            (x, block, Some((x, tmp)))
+                            Some((x, block, Some((x, tmp))))
                         } else {
                             match z {
-                                Top => panic!(
-                                    "\nIn-Game Error: \nMaximum build limit has been reached"
-                                ),
+                                Top => {
+                                    warn!(
+                                        "\nIn-Game Error: \nMaximum build limit has been reached"
+                                    );
+                                    None
+                                }
                                 Bottom => {
-                                    panic!("\nIn-Game Error: \nCan't build lower than y = 0.")
+                                    warn!(
+                                        "\nIn-Game Error: \nMinimum build limit has been reached"
+                                    );
+                                    None
                                 }
-                                Right => ([x[0] + 1, x[1]], tmp - WIDTH + 1, Some((x, tmp))),
-                                Left => ([x[0] - 1, x[1]], tmp + WIDTH - 1, Some((x, tmp))),
-                                Back => {
-                                    ([x[0], x[1] + 1], tmp - WIDTH * (LENGTH - 1), Some((x, tmp)))
-                                }
-                                Forward => {
-                                    ([x[0], x[1] - 1], tmp + WIDTH * (LENGTH - 1), Some((x, tmp)))
-                                }
+                                Right => Some(([x[0] + 1, x[1]], tmp - WIDTH + 1, Some((x, tmp)))),
+                                Left => Some(([x[0] - 1, x[1]], tmp + WIDTH - 1, Some((x, tmp)))),
+                                Back => Some((
+                                    [x[0], x[1] + 1],
+                                    tmp - WIDTH * (LENGTH - 1),
+                                    Some((x, tmp)),
+                                )),
+                                Forward => Some((
+                                    [x[0], x[1] - 1],
+                                    tmp + WIDTH * (LENGTH - 1),
+                                    Some((x, tmp)),
+                                )),
                             }
                             // (
                             //     x,

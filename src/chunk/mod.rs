@@ -6,15 +6,15 @@ pub use chunk_queue::*;
 pub use gen::*;
 use systems::*;
 
-use crate::Block;
+use crate::{Block, GlobalSecondsCounter};
 use bevy::prelude::*;
 use bevy_meshem::prelude::{Dimensions, MeshMD};
 
 const CHUNK_SIZE: usize = 16;
 pub const CHUNK_DIMS: Dimensions = (CHUNK_SIZE, CHUNK_SIZE, CHUNK_SIZE);
-pub const HEIGHT: usize = CHUNK_DIMS.2;
+pub const HEIGHT: usize = CHUNK_DIMS.1;
 pub const WIDTH: usize = CHUNK_DIMS.0;
-pub const LENGTH: usize = CHUNK_DIMS.1;
+pub const LENGTH: usize = CHUNK_DIMS.2;
 pub const CHUNK_LEN: usize = CHUNK_DIMS.0 * CHUNK_DIMS.1 * CHUNK_DIMS.2;
 const NOISE_FACTOR_CONT: f64 = 0.020;
 // has to be greater than 1.0
@@ -42,6 +42,11 @@ pub enum InitialChunkLoadState {
 #[derive(Component)]
 pub struct ChunkCloseToPlayer;
 
+#[derive(Component)]
+pub struct ToCull {
+    pub culled: [bool; 6],
+}
+
 pub struct ChunkPlugin;
 
 impl Plugin for ChunkPlugin {
@@ -55,6 +60,13 @@ impl Plugin for ChunkPlugin {
                 (update_closby_chunks, update_mesh_frame)
                     .run_if(in_state(InitialChunkLoadState::Complete)),
             ),
+        );
+        app.add_systems(
+            PreUpdate,
+            (cull_sides_of_mesh.run_if(
+                in_state(InitialChunkLoadState::Complete)
+                    .and_then(resource_changed::<GlobalSecondsCounter>()),
+            ),),
         );
 
         // Resources

@@ -1,8 +1,11 @@
+use super::ToCull;
 use crate::{
-    block_reg::BlockRegistry, chunk_queue::*, update_mesh, Arc, Chunk, ChunkCloseToPlayer,
-    CurrentChunk, ToUpdate, RENDER_DISTANCE,
+    block_reg::BlockRegistry, chunk_queue::*, iter_faces_of_chunk, update_mesh, Arc, Chunk,
+    ChunkCloseToPlayer, CurrentChunk, Face, Face::*, ToUpdate, VoxelRegistry, LENGTH,
+    RENDER_DISTANCE, WIDTH,
 };
 use bevy::prelude::*;
+use bevy_meshem::prelude::VoxelChange;
 
 // Each frame, dequeue all the pending chunks to despawn / spawn onto
 // the thread pool, after they are done, they will be picked up by `handle_tasks`.
@@ -87,6 +90,77 @@ pub(crate) fn update_mesh_frame(
             commands.entity(ent).insert(aabb).remove::<ToUpdate>();
         } else {
             warn!("Couldn't compute Aabb for mesh after updating");
+        }
+    }
+}
+
+//
+pub(crate) fn cull_sides_of_mesh(
+    chunks_to_cull: Query<(Entity, &ToCull), With<Chunk>>,
+    mut chunks_query: Query<&mut Chunk>,
+    breg: Res<BlockRegistry>,
+    mut commands: Commands,
+    chunk_map: Res<ChunkMap>,
+) {
+    let breg = breg.into_inner();
+    for (ent, to_cull) in &chunks_to_cull {
+        if ent == Entity::PLACEHOLDER {
+            continue;
+        }
+        let chunk = chunks_query.get(ent).unwrap();
+        let cords = chunk.cords;
+        let grid = chunk.grid;
+        let dims = chunk.meta_data.dims;
+        let mut culled = [true; 6];
+        for i in 0..6 {
+            if to_cull.culled[i] {
+                continue;
+            }
+            let face = Face::from(i);
+            let adj_chunk_cords = match face {
+                Right => [cords[0] + 1, cords[1]],
+                Left => [cords[0] - 1, cords[1]],
+                Back => [cords[0], cords[1] + 1],
+                Forward => [cords[0], cords[1] - 1],
+                Top | Bottom => panic!("Shouldn't happen"),
+            };
+            if let Some(adj_chunk) = chunk_map.get_ent(adj_chunk_cords) {
+                if adj_chunk == Entity::PLACEHOLDER {
+                    continue;
+                }
+                let adj_chunk_grid = { chunks_query.get(adj_chunk).unwrap().grid };
+                for svox in iter_faces_of_chunk(dims, face) {
+                    let adj_voxel_ind = match face {
+                        Right => svox - WIDTH + 1,
+                        Left => svox + WIDTH - 1,
+                        Back => svox - WIDTH * (LENGTH - 1),
+                        Forward => svox + WIDTH * (LENGTH - 1),
+                        _ => panic!("Shouldn't happen"),
+                    };
+                    let adj_voxel = &adj_chunk_grid[adj_voxel_ind];
+                    if breg.is_covering(adj_voxel, face.opposite()) {
+                        let mut chunk = chunks_query.get_mut(ent).unwrap();
+                        chunk
+                            .meta_data
+                            .log(VoxelChange::CullFaces, svox, grid[svox], {
+                                let mut r = [None; 6];
+                                r[face as usize] = Some(*adj_voxel);
+                                r
+                            });
+                    }
+                }
+            } else {
+                culled[face as usize] = false;
+                continue;
+            }
+        }
+        if culled == [true; 6] {
+            commands.entity(ent).insert(ToUpdate).remove::<ToCull>();
+        } else {
+            commands
+                .entity(ent)
+                .insert(ToUpdate)
+                .insert(ToCull { culled });
         }
     }
 }
