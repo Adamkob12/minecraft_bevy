@@ -2,7 +2,8 @@
 ![Screenshot 2023-10-11 at 0 35 01](https://github.com/Adamkob12/minecraft_bevy/assets/46227443/ce7d8eaa-d3d9-4735-a3a0-59340525db51)
 ### Updated after bevy_meshem 0.2.3
 ![Screenshot 2023-10-14 at 19 21 30](https://github.com/Adamkob12/minecraft_bevy/assets/46227443/330e6711-b566-408d-8543-0827b8e6d85f)
-
+### After adding Ambient Occlusion
+![Screenshot 2023-10-15 at 2 35 03](https://github.com/Adamkob12/minecraft_bevy/assets/46227443/ee175b26-ba70-49d3-85ce-429a76fde4cf)
 
 ## Minecraft_bevy was built to showcase [bevy_meshem](https://github.com/Adamkob12/bevy_meshem). After a week of developing it has:
 ### ***Chunk loading / unloading*** 
