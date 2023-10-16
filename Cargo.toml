@@ -8,7 +8,7 @@ edition = "2021"
 [dependencies]
 bevy = "0.11.3"
 bevy_atmosphere = "0.7.0"
-bevy_meshem = { git = "https://github.com/Adamkob12/bevy_meshem.git" }
-# bevy_meshem = { path = "../meshem/workin"}
+# bevy_meshem = { git = "https://github.com/Adamkob12/bevy_meshem.git" }
+bevy_meshem = { path = "../meshem/workin"}
 futures-lite = "1.13.0"
 noise = "0.8.2"

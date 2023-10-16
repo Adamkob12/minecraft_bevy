@@ -137,6 +137,7 @@ pub(crate) fn cull_sides_of_mesh(
                         Forward => svox + WIDTH * (LENGTH - 1),
                         _ => panic!("Shouldn't happen"),
                     };
+
                     let adj_voxel = &adj_chunk_grid[adj_voxel_ind];
                     if breg.is_covering(adj_voxel, face.opposite()) {
                         let mut chunk = chunks_query.get_mut(ent).unwrap();

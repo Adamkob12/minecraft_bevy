@@ -62,7 +62,7 @@ impl Plugin for ChunkPlugin {
             ),
         );
         app.add_systems(
-            PreUpdate,
+            PostUpdate,
             (cull_sides_of_mesh.run_if(
                 in_state(InitialChunkLoadState::Complete)
                     .and_then(resource_changed::<GlobalSecondsCounter>()),

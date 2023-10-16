@@ -332,6 +332,19 @@ fn handle_block_break_place(
                 match event.change {
                     VoxelChange::Added => {
                         c.grid[block] = new_block;
+                        for (voxel, chunk, ent, index, face) in neigbhoring_voxels_across_chunks {
+                            if let Some(block) = voxel {
+                                let mut tmp = [None; 6];
+                                tmp[face.opposite() as usize] = Some(vox);
+                                chunk_query.get_mut(ent).unwrap().1.meta_data.log(
+                                    VoxelChange::CullFaces,
+                                    index,
+                                    block,
+                                    tmp,
+                                );
+                                commands.entity(ent).insert(ToUpdate);
+                            }
+                        }
                     }
                     VoxelChange::Broken => {
                         c.grid[block] = AIR;

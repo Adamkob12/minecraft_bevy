@@ -24,7 +24,7 @@ pub fn add_break_detector(
         let pos = tran.translation;
 
         if buttons.just_pressed(MouseButton::Left) {
-            if tran.translation.y > HEIGHT as f32 || tran.translation.y < 0.0 {
+            if tran.translation.y - 1.0 >= HEIGHT as f32 || tran.translation.y < 0.0 {
                 info!("\nIn-Game Log:\n Can't break / place blocks above the maximum height.");
                 return;
             }
@@ -38,7 +38,7 @@ pub fn add_break_detector(
         }
 
         if buttons.just_pressed(MouseButton::Right) {
-            if tran.translation.y > HEIGHT as f32 || tran.translation.y < 0.0 {
+            if tran.translation.y + 1.0 >= HEIGHT as f32 || tran.translation.y < 0.0 {
                 info!("\nIn-Game Log:\n Can't break / place blocks above the maximum height.");
                 return;
             }
