@@ -27,7 +27,7 @@ pub use utils::*;
 
 // const FACTOR: usize = CHUNK_DIMS.0;
 // Render distance should be above 1.
-pub const RENDER_DISTANCE: i32 = 8;
+pub const RENDER_DISTANCE: i32 = 6;
 pub const GEN_SEED: u32 = 5;
 const CROSSHAIR_SIZE: f32 = 22.0;
 
@@ -68,7 +68,7 @@ fn main() {
 
         .init_resource::<BlockRegistry>()
         .insert_resource(AmbientLight {
-                brightness: 1.2, color: Color::ANTIQUE_WHITE})
+                brightness: 0.75, color: Color::ANTIQUE_WHITE})
         .insert_resource(CycleTimer(Timer::new(
                 bevy::utils::Duration::from_millis(50),
                 TimerMode::Repeating,)))
@@ -102,7 +102,7 @@ fn setup(
     asset_server: Res<AssetServer>,
     mut camera_query: Query<&mut Projection>,
 ) {
-    let texture_handle: Handle<Image> = asset_server.load("UV_map_example.png");
+    let texture_handle: Handle<Image> = asset_server.load("blocks.png");
     let mat = materials.add(StandardMaterial {
         base_color_texture: Some(texture_handle),
         reflectance: 0.0,
@@ -114,7 +114,7 @@ fn setup(
     commands.spawn(LoadedChunks(0));
     let mut projection = camera_query.get_single_mut().unwrap();
     if let Projection::Perspective(ref mut perspective) = *projection {
-        perspective.fov = PI / 3.0;
+        perspective.fov = PI / 3.5;
     }
 }
 

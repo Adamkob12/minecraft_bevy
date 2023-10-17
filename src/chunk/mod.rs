@@ -57,16 +57,18 @@ impl Plugin for ChunkPlugin {
             (
                 spawn_and_despawn_chunks,
                 frame_chunk_update,
-                (update_closby_chunks, update_mesh_frame)
-                    .run_if(in_state(InitialChunkLoadState::Complete)),
+                (update_closby_chunks).run_if(in_state(InitialChunkLoadState::Complete)),
             ),
         );
         app.add_systems(
             PostUpdate,
-            (cull_sides_of_mesh.run_if(
-                in_state(InitialChunkLoadState::Complete)
-                    .and_then(resource_changed::<GlobalSecondsCounter>()),
-            ),),
+            (
+                cull_sides_of_mesh.run_if(
+                    in_state(InitialChunkLoadState::Complete)
+                        .and_then(resource_changed::<GlobalSecondsCounter>()),
+                ),
+                update_mesh_frame,
+            ),
         );
 
         // Resources

@@ -8,24 +8,29 @@ pub const AIR: Block = 0;
 pub const DIRT: Block = 1;
 pub const GRASS: Block = 2;
 pub const STONE: Block = 3;
-pub const LIGHT_MAGIC: Block = 4;
-pub const DARK_MAGIC: Block = 5;
-pub const TRANSPERENT: Block = 6;
-pub const WOOD_DARK_GREY: Block = 7;
-pub const PINK_LEAVES: Block = 8;
+pub const BRICKS: Block = 4;
+pub const LOG: Block = 5;
+pub const WOOD: Block = 6;
+pub const LEAVES: Block = 7;
+pub const GLASS: Block = 8;
+pub const GLOWSTONE: Block = 9;
 
 pub const VOXEL_DIMS: [f32; 3] = [1.0, 1.0, 1.0];
+
+const ATLAS_CORDS: [u32; 2] = [24, 24];
+const PADDING: f32 = 0.0625;
 
 #[derive(Resource, Clone)]
 pub struct BlockRegistry {
     grass_block: Mesh,
     dirt_block: Mesh,
     stone_block: Mesh,
-    light_magic_block: Mesh,
-    dark_magic_block: Mesh,
-    transperent_block: Mesh,
-    wood_dark_grey_block: Mesh,
-    pink_leaves: Mesh,
+    bricks_block: Mesh,
+    log_block: Mesh,
+    wood_block: Mesh,
+    leaves_block: Mesh,
+    glass_block: Mesh,
+    glowstone_block: Mesh,
 }
 
 impl Default for BlockRegistry {
@@ -33,7 +38,7 @@ impl Default for BlockRegistry {
         BlockRegistry {
             grass_block: generate_voxel_mesh(
                 VOXEL_DIMS,
-                [4, 4],
+                ATLAS_CORDS,
                 [
                     (Top, [0, 0]),
                     (Bottom, [2, 0]),
@@ -42,12 +47,12 @@ impl Default for BlockRegistry {
                     (Forward, [1, 0]),
                     (Back, [1, 0]),
                 ],
-                0.1,
+                PADDING,
                 Some(0.75),
             ),
             dirt_block: generate_voxel_mesh(
                 VOXEL_DIMS,
-                [4, 4],
+                ATLAS_CORDS,
                 [
                     (Top, [2, 0]),
                     (Bottom, [2, 0]),
@@ -56,12 +61,12 @@ impl Default for BlockRegistry {
                     (Forward, [2, 0]),
                     (Back, [2, 0]),
                 ],
-                0.1,
+                PADDING,
                 Some(0.75),
             ),
             stone_block: generate_voxel_mesh(
                 VOXEL_DIMS,
-                [4, 4],
+                ATLAS_CORDS,
                 [
                     (Top, [3, 0]),
                     (Bottom, [3, 0]),
@@ -70,77 +75,91 @@ impl Default for BlockRegistry {
                     (Forward, [3, 0]),
                     (Back, [3, 0]),
                 ],
-                0.1,
+                PADDING,
                 Some(0.75),
             ),
-            light_magic_block: generate_voxel_mesh(
+            bricks_block: generate_voxel_mesh(
                 VOXEL_DIMS,
-                [4, 4],
+                ATLAS_CORDS,
                 [
-                    (Top, [2, 1]),
-                    (Bottom, [2, 1]),
-                    (Right, [2, 1]),
-                    (Left, [2, 1]),
-                    (Forward, [2, 1]),
-                    (Back, [2, 1]),
+                    (Top, [4, 0]),
+                    (Bottom, [4, 0]),
+                    (Right, [4, 0]),
+                    (Left, [4, 0]),
+                    (Forward, [4, 0]),
+                    (Back, [4, 0]),
                 ],
-                0.1,
+                PADDING,
                 Some(0.75),
             ),
-            dark_magic_block: generate_voxel_mesh(
+            log_block: generate_voxel_mesh(
                 VOXEL_DIMS,
-                [4, 4],
+                ATLAS_CORDS,
                 [
-                    (Top, [1, 1]),
-                    (Bottom, [1, 1]),
-                    (Right, [1, 1]),
-                    (Left, [1, 1]),
-                    (Forward, [1, 1]),
-                    (Back, [1, 1]),
+                    (Top, [5, 0]),
+                    (Bottom, [5, 0]),
+                    (Right, [6, 0]),
+                    (Left, [6, 0]),
+                    (Forward, [6, 0]),
+                    (Back, [6, 0]),
                 ],
-                0.1,
+                PADDING,
+                Some(0.90),
+            ),
+            wood_block: generate_voxel_mesh(
+                VOXEL_DIMS,
+                ATLAS_CORDS,
+                [
+                    (Top, [7, 0]),
+                    (Bottom, [7, 0]),
+                    (Right, [7, 0]),
+                    (Left, [7, 0]),
+                    (Forward, [7, 0]),
+                    (Back, [7, 0]),
+                ],
+                PADDING,
                 Some(0.75),
             ),
-            transperent_block: generate_voxel_mesh(
+            leaves_block: generate_voxel_mesh(
                 VOXEL_DIMS,
-                [4, 4],
+                ATLAS_CORDS,
                 [
-                    (Top, [3, 1]),
-                    (Bottom, [3, 1]),
-                    (Right, [3, 1]),
-                    (Left, [3, 1]),
-                    (Forward, [3, 1]),
-                    (Back, [3, 1]),
+                    (Top, [8, 0]),
+                    (Bottom, [8, 0]),
+                    (Right, [8, 0]),
+                    (Left, [8, 0]),
+                    (Forward, [8, 0]),
+                    (Back, [8, 0]),
                 ],
-                0.1,
+                PADDING,
                 Some(0.75),
             ),
-            wood_dark_grey_block: generate_voxel_mesh(
+            glass_block: generate_voxel_mesh(
                 VOXEL_DIMS,
-                [4, 4],
+                ATLAS_CORDS,
                 [
-                    (Top, [0, 2]),
-                    (Bottom, [0, 2]),
-                    (Right, [0, 2]),
-                    (Left, [0, 2]),
-                    (Forward, [0, 2]),
-                    (Back, [0, 2]),
+                    (Top, [9, 0]),
+                    (Bottom, [9, 0]),
+                    (Right, [9, 0]),
+                    (Left, [9, 0]),
+                    (Forward, [9, 0]),
+                    (Back, [9, 0]),
                 ],
-                0.1,
+                PADDING,
                 Some(0.75),
             ),
-            pink_leaves: generate_voxel_mesh(
+            glowstone_block: generate_voxel_mesh(
                 VOXEL_DIMS,
-                [4, 4],
+                ATLAS_CORDS,
                 [
-                    (Top, [1, 2]),
-                    (Bottom, [1, 2]),
-                    (Right, [1, 2]),
-                    (Left, [1, 2]),
-                    (Forward, [1, 2]),
-                    (Back, [1, 2]),
+                    (Top, [10, 0]),
+                    (Bottom, [10, 0]),
+                    (Right, [10, 0]),
+                    (Left, [10, 0]),
+                    (Forward, [10, 0]),
+                    (Back, [10, 0]),
                 ],
-                0.1,
+                PADDING,
                 Some(0.75),
             ),
         }
@@ -168,7 +187,7 @@ impl VoxelRegistry for BlockRegistry {
     }
 
     fn is_covering(&self, voxel: &Self::Voxel, _side: prelude::Face) -> bool {
-        *voxel != AIR && *voxel != PINK_LEAVES && *voxel != TRANSPERENT
+        *voxel != AIR && *voxel != LEAVES && *voxel != GLASS
     }
 
     fn get_mesh(&self, voxel: &Self::Voxel) -> VoxelMesh<&Mesh> {
@@ -177,11 +196,12 @@ impl VoxelRegistry for BlockRegistry {
             DIRT => VoxelMesh::NormalCube(&self.dirt_block),
             GRASS => VoxelMesh::NormalCube(&self.grass_block),
             STONE => VoxelMesh::NormalCube(&self.stone_block),
-            LIGHT_MAGIC => VoxelMesh::NormalCube(&self.light_magic_block),
-            DARK_MAGIC => VoxelMesh::NormalCube(&self.dark_magic_block),
-            TRANSPERENT => VoxelMesh::NormalCube(&self.transperent_block),
-            WOOD_DARK_GREY => VoxelMesh::NormalCube(&self.wood_dark_grey_block),
-            PINK_LEAVES => VoxelMesh::NormalCube(&self.pink_leaves),
+            BRICKS => VoxelMesh::NormalCube(&self.bricks_block),
+            LOG => VoxelMesh::NormalCube(&self.log_block),
+            WOOD => VoxelMesh::NormalCube(&self.wood_block),
+            LEAVES => VoxelMesh::NormalCube(&self.leaves_block),
+            GLASS => VoxelMesh::NormalCube(&self.glass_block),
+            GLOWSTONE => VoxelMesh::NormalCube(&self.glowstone_block),
             _ => VoxelMesh::Null,
         }
     }

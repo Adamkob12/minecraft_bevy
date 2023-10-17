@@ -13,14 +13,7 @@ impl Default for Inventory {
         Inventory {
             current: 0,
             items: vec![
-                STONE,
-                GRASS,
-                DIRT,
-                LIGHT_MAGIC,
-                DARK_MAGIC,
-                TRANSPERENT,
-                WOOD_DARK_GREY,
-                PINK_LEAVES,
+                GRASS, DIRT, STONE, BRICKS, LOG, WOOD, LEAVES, GLASS, GLOWSTONE,
             ],
         }
     }

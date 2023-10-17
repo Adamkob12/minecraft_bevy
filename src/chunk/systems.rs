@@ -87,7 +87,9 @@ pub(crate) fn update_mesh_frame(
             .expect("Can't find chunk mesh in internal assets");
         update_mesh(mesh_ref_mut, &mut chunk.meta_data, &*breg.clone());
         if let Some(aabb) = mesh_ref_mut.compute_aabb() {
-            commands.entity(ent).insert(aabb).remove::<ToUpdate>();
+            if let Some(mut comm) = commands.get_entity(ent) {
+                comm.insert(aabb).remove::<ToUpdate>();
+            }
         } else {
             warn!("Couldn't compute Aabb for mesh after updating");
         }

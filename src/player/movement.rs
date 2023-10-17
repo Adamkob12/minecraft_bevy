@@ -126,13 +126,21 @@ pub(super) fn player_move(
                 (HALF_CAGE_I as i32) as usize,
                 (HALF_CAGE_I + dz as i32) as usize,
             ];
+            let xzblock_cords = [
+                (HALF_CAGE_I + dx as i32) as usize,
+                (HALF_CAGE_I as i32) as usize,
+                (HALF_CAGE_I + dz as i32) as usize,
+            ];
 
             let xblock = one_d_cords(xblock_cords, CAGE_DIMS);
             let yblock = one_d_cords(yblock_cords, CAGE_DIMS);
             let zblock = one_d_cords(zblock_cords, CAGE_DIMS);
+            let xzblock = one_d_cords(xzblock_cords, CAGE_DIMS);
             let xblock = cage.blocks[xblock];
             let yblock = cage.blocks[yblock];
             let zblock = cage.blocks[zblock];
+            let xzblock = cage.blocks[xzblock];
+
             if xblock == AIR {
                 transform.translation.x = new_pos.x;
             } else if (pos.x - pos.x.round() + 0.5 * dx.signum() * -1.0).abs() > 0.5 {
@@ -145,7 +153,7 @@ pub(super) fn player_move(
                 transform.translation.y +=
                     velocity.y * (pos.y - pos.y.round() + 0.5 * dy.signum() * -1.0).powi(2);
             }
-            if zblock == AIR {
+            if zblock == AIR && xzblock == AIR {
                 transform.translation.z = new_pos.z;
             } else if (pos.z - pos.z.round() + 0.5 * dz.signum() * -1.0).abs() > 0.5 {
                 transform.translation.z +=
