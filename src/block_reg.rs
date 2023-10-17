@@ -14,6 +14,7 @@ pub const WOOD: Block = 6;
 pub const LEAVES: Block = 7;
 pub const GLASS: Block = 8;
 pub const GLOWSTONE: Block = 9;
+pub const WATER: Block = 10;
 
 pub const VOXEL_DIMS: [f32; 3] = [1.0, 1.0, 1.0];
 
@@ -31,11 +32,28 @@ pub struct BlockRegistry {
     leaves_block: Mesh,
     glass_block: Mesh,
     glowstone_block: Mesh,
+    water_block: Mesh,
 }
 
 impl Default for BlockRegistry {
     fn default() -> Self {
         BlockRegistry {
+            water_block: generate_voxel_mesh(
+                VOXEL_DIMS,
+                ATLAS_CORDS,
+                [
+                    (Top, [11, 0]),
+                    (Bottom, [11, 0]),
+                    (Right, [11, 0]),
+                    (Left, [11, 0]),
+                    (Forward, [11, 0]),
+                    (Back, [11, 0]),
+                ],
+                PADDING,
+                Some(0.75),
+                0.8,
+            ),
+
             grass_block: generate_voxel_mesh(
                 VOXEL_DIMS,
                 ATLAS_CORDS,
@@ -49,6 +67,7 @@ impl Default for BlockRegistry {
                 ],
                 PADDING,
                 Some(0.75),
+                1.0,
             ),
             dirt_block: generate_voxel_mesh(
                 VOXEL_DIMS,
@@ -63,6 +82,7 @@ impl Default for BlockRegistry {
                 ],
                 PADDING,
                 Some(0.75),
+                1.0,
             ),
             stone_block: generate_voxel_mesh(
                 VOXEL_DIMS,
@@ -77,6 +97,7 @@ impl Default for BlockRegistry {
                 ],
                 PADDING,
                 Some(0.75),
+                1.0,
             ),
             bricks_block: generate_voxel_mesh(
                 VOXEL_DIMS,
@@ -91,6 +112,7 @@ impl Default for BlockRegistry {
                 ],
                 PADDING,
                 Some(0.75),
+                1.0,
             ),
             log_block: generate_voxel_mesh(
                 VOXEL_DIMS,
@@ -105,6 +127,7 @@ impl Default for BlockRegistry {
                 ],
                 PADDING,
                 Some(0.90),
+                1.0,
             ),
             wood_block: generate_voxel_mesh(
                 VOXEL_DIMS,
@@ -119,6 +142,7 @@ impl Default for BlockRegistry {
                 ],
                 PADDING,
                 Some(0.75),
+                1.0,
             ),
             leaves_block: generate_voxel_mesh(
                 VOXEL_DIMS,
@@ -133,6 +157,7 @@ impl Default for BlockRegistry {
                 ],
                 PADDING,
                 Some(0.75),
+                1.0,
             ),
             glass_block: generate_voxel_mesh(
                 VOXEL_DIMS,
@@ -147,6 +172,7 @@ impl Default for BlockRegistry {
                 ],
                 PADDING,
                 Some(0.75),
+                1.0,
             ),
             glowstone_block: generate_voxel_mesh(
                 VOXEL_DIMS,
@@ -161,6 +187,7 @@ impl Default for BlockRegistry {
                 ],
                 PADDING,
                 Some(0.75),
+                1.0,
             ),
         }
     }
@@ -187,7 +214,7 @@ impl VoxelRegistry for BlockRegistry {
     }
 
     fn is_covering(&self, voxel: &Self::Voxel, _side: prelude::Face) -> bool {
-        *voxel != AIR && *voxel != LEAVES && *voxel != GLASS
+        *voxel != AIR && *voxel != LEAVES && *voxel != GLASS && *voxel != WATER
     }
 
     fn get_mesh(&self, voxel: &Self::Voxel) -> VoxelMesh<&Mesh> {
@@ -202,6 +229,7 @@ impl VoxelRegistry for BlockRegistry {
             LEAVES => VoxelMesh::NormalCube(&self.leaves_block),
             GLASS => VoxelMesh::NormalCube(&self.glass_block),
             GLOWSTONE => VoxelMesh::NormalCube(&self.glowstone_block),
+            WATER => VoxelMesh::NormalCube(&self.water_block),
             _ => VoxelMesh::Null,
         }
     }

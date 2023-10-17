@@ -13,7 +13,7 @@ impl Default for Inventory {
         Inventory {
             current: 0,
             items: vec![
-                GRASS, DIRT, STONE, BRICKS, LOG, WOOD, LEAVES, GLASS, GLOWSTONE,
+                GRASS, DIRT, STONE, BRICKS, LOG, WOOD, LEAVES, GLASS, GLOWSTONE, WATER,
             ],
         }
     }
@@ -39,35 +39,35 @@ fn input_inventory(mut inv: ResMut<Inventory>, keys: Res<Input<KeyCode>>) {
         inv.current = 2;
         inv.current = inv.current % inv.items.len();
     }
-    if keys.just_pressed(KeyCode::Key3) {
+    if keys.just_pressed(KeyCode::Key3) || keys.just_pressed(KeyCode::R) {
         inv.current = 3;
         inv.current = inv.current % inv.items.len();
     }
-    if keys.just_pressed(KeyCode::Key4) {
+    if keys.just_pressed(KeyCode::Key4) || keys.just_pressed(KeyCode::Z) {
         inv.current = 4;
         inv.current = inv.current % inv.items.len();
     }
-    if keys.just_pressed(KeyCode::Key5) {
+    if keys.just_pressed(KeyCode::Key5) || keys.just_pressed(KeyCode::X) {
         inv.current = 5;
         inv.current = inv.current % inv.items.len();
     }
-    if keys.just_pressed(KeyCode::Key6) {
+    if keys.just_pressed(KeyCode::Key6) || keys.just_pressed(KeyCode::C) {
         inv.current = 6;
         inv.current = inv.current % inv.items.len();
     }
-    if keys.just_pressed(KeyCode::Key7) {
+    if keys.just_pressed(KeyCode::Key7) || keys.just_pressed(KeyCode::V) {
         inv.current = 7;
         inv.current = inv.current % inv.items.len();
     }
-    if keys.just_pressed(KeyCode::Key8) {
+    if keys.just_pressed(KeyCode::Key8) || keys.just_pressed(KeyCode::G) {
         inv.current = 8;
         inv.current = inv.current % inv.items.len();
     }
-    if keys.just_pressed(KeyCode::Key9) {
+    if keys.just_pressed(KeyCode::Key9) || keys.just_pressed(KeyCode::T) {
         inv.current = 9;
         inv.current = inv.current % inv.items.len();
     }
-    if keys.just_pressed(KeyCode::Key0) {
+    if keys.just_pressed(KeyCode::Key0) || keys.just_pressed(KeyCode::F) {
         inv.current = 0;
         inv.current = inv.current % inv.items.len();
     }
