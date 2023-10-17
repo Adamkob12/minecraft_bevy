@@ -24,31 +24,29 @@ pub fn add_break_detector(
         let pos = tran.translation;
 
         if buttons.just_pressed(MouseButton::Left) {
-            if tran.translation.y - 1.0 >= HEIGHT as f32 || tran.translation.y < 0.0 {
-                info!("\nIn-Game Log:\n Can't break / place blocks above the maximum height.");
-                return;
-            }
             block_change_event_writer.send(BlockChange {
                 blocks: blocks_in_the_way(pos, forward, REACH_DISTANCE)
                     .iter()
-                    .map(|(x, y, _z)| (*x, one_d_cords(*y, CHUNK_DIMS), None))
+                    .filter_map(|(x, y, _z)| {
+                        if let Some(tmp) = one_d_cords_safe(*y, CHUNK_DIMS) {
+                            Some((*x, tmp, None))
+                        } else {
+                            None
+                        }
+                    })
                     .collect(),
                 change: VoxelChange::Broken,
             });
         }
 
         if buttons.just_pressed(MouseButton::Right) {
-            if tran.translation.y + 1.0 >= HEIGHT as f32 || tran.translation.y < 0.0 {
-                info!("\nIn-Game Log:\n Can't break / place blocks above the maximum height.");
-                return;
-            }
             block_change_event_writer.send(BlockChange {
                 change: VoxelChange::Added,
                 blocks: blocks_in_the_way(pos, forward, REACH_DISTANCE)
                     .iter()
                     .skip(1)
                     .filter_map(|&(x, y, z)| {
-                        let tmp = one_d_cords(y, CHUNK_DIMS);
+                        let tmp = one_d_cords_safe(y, CHUNK_DIMS)?;
                         if let Some(block) = get_neighbor(tmp, z, CHUNK_DIMS) {
                             Some((x, block, Some((x, tmp))))
                         } else {

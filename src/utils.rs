@@ -76,6 +76,14 @@ pub const fn one_d_cords(threed: [usize; 3], dims: (usize, usize, usize)) -> usi
     threed[1] * (dims.0 * dims.2) + threed[2] * dims.0 + threed[0]
 }
 
+pub const fn one_d_cords_safe(threed: [usize; 3], dims: (usize, usize, usize)) -> Option<usize> {
+    if threed[0] >= dims.0 || threed[1] >= dims.1 || threed[2] >= dims.2 {
+        None
+    } else {
+        Some(threed[1] * (dims.0 * dims.2) + threed[2] * dims.0 + threed[0])
+    }
+}
+
 // Extract the vertex data for the physics engine.
 use bevy::render::mesh::{Mesh, VertexAttributeValues};
 pub fn extract_position_vertex_data(mesh: &Mesh) -> Vec<Vec3> {
