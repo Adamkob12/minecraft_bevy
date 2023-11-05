@@ -37,7 +37,6 @@ pub(super) fn setup_player(mut commands: Commands) {
             },
             FlyCam,
             CurrentChunk([0, 0]),
-            AtmosphereCamera::default(),
             VelocityVectors {
                 xV: Vec3::ZERO,
                 yV: Vec3::ZERO,
@@ -183,7 +182,7 @@ pub(super) fn player_look(
 ) {
     if let Ok(window) = primary_window.get_single() {
         for mut transform in query.iter_mut() {
-            for ev in state.reader_motion.iter(&motion) {
+            for ev in state.reader_motion.read(&motion) {
                 let (mut yaw, mut pitch, _) = transform.rotation.to_euler(EulerRot::YXZ);
                 match window.cursor.grab_mode {
                     CursorGrabMode::None => (),

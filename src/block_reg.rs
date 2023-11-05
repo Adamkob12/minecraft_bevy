@@ -1,5 +1,5 @@
 use bevy::prelude::*;
-use bevy::render::mesh::{Mesh, MeshVertexAttribute};
+use bevy::render::mesh::MeshVertexAttribute;
 use bevy_meshem::prelude::*;
 
 pub type Block = u16;
@@ -17,6 +17,7 @@ pub const GLOWSTONE: Block = 9;
 pub const WATER: Block = 10;
 
 pub const VOXEL_DIMS: [f32; 3] = [1.0, 1.0, 1.0];
+pub const VOXEL_CENTER: [f32; 3] = [0.0, 0.0, 0.0];
 
 const ATLAS_CORDS: [u32; 2] = [24, 24];
 const PADDING: f32 = 0.0625;
@@ -49,6 +50,7 @@ impl Default for BlockRegistry {
                     (Forward, [11, 0]),
                     (Back, [11, 0]),
                 ],
+                VOXEL_CENTER,
                 PADDING,
                 Some(0.75),
                 0.8,
@@ -65,6 +67,7 @@ impl Default for BlockRegistry {
                     (Forward, [1, 0]),
                     (Back, [1, 0]),
                 ],
+                VOXEL_CENTER,
                 PADDING,
                 Some(0.75),
                 1.0,
@@ -80,6 +83,7 @@ impl Default for BlockRegistry {
                     (Forward, [2, 0]),
                     (Back, [2, 0]),
                 ],
+                VOXEL_CENTER,
                 PADDING,
                 Some(0.75),
                 1.0,
@@ -95,6 +99,7 @@ impl Default for BlockRegistry {
                     (Forward, [3, 0]),
                     (Back, [3, 0]),
                 ],
+                VOXEL_CENTER,
                 PADDING,
                 Some(0.75),
                 1.0,
@@ -110,6 +115,7 @@ impl Default for BlockRegistry {
                     (Forward, [4, 0]),
                     (Back, [4, 0]),
                 ],
+                VOXEL_CENTER,
                 PADDING,
                 Some(0.75),
                 1.0,
@@ -125,6 +131,7 @@ impl Default for BlockRegistry {
                     (Forward, [6, 0]),
                     (Back, [6, 0]),
                 ],
+                VOXEL_CENTER,
                 PADDING,
                 Some(0.90),
                 1.0,
@@ -140,6 +147,7 @@ impl Default for BlockRegistry {
                     (Forward, [7, 0]),
                     (Back, [7, 0]),
                 ],
+                VOXEL_CENTER,
                 PADDING,
                 Some(0.75),
                 1.0,
@@ -155,6 +163,7 @@ impl Default for BlockRegistry {
                     (Forward, [8, 0]),
                     (Back, [8, 0]),
                 ],
+                VOXEL_CENTER,
                 PADDING,
                 Some(0.75),
                 1.0,
@@ -170,6 +179,7 @@ impl Default for BlockRegistry {
                     (Forward, [9, 0]),
                     (Back, [9, 0]),
                 ],
+                VOXEL_CENTER,
                 PADDING,
                 Some(0.75),
                 1.0,
@@ -185,6 +195,7 @@ impl Default for BlockRegistry {
                     (Forward, [10, 0]),
                     (Back, [10, 0]),
                 ],
+                VOXEL_CENTER,
                 PADDING,
                 Some(0.75),
                 1.0,

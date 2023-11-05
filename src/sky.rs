@@ -1,6 +1,5 @@
 use crate::*;
 use bevy::prelude::*;
-use bevy_atmosphere::prelude::*;
 
 pub fn setup_light(mut commands: Commands, primary_window: Query<&Window, With<PrimaryWindow>>) {
     // commands.insert_resource(AtmosphereModel::new(Nishita {
@@ -51,13 +50,8 @@ pub struct Sun;
 #[derive(Resource)]
 pub struct CycleTimer(pub Timer);
 
-pub fn daylight_cycle(
-    mut atmosphere: AtmosphereMut<Nishita>,
-    mut query: Query<(&mut Transform, &mut DirectionalLight), With<Sun>>,
-) {
-    atmosphere.sun_position = Vec3::new(0.0, 0.9, 0.7);
-
-    if let Some((mut light_trans, mut directional)) = query.single_mut().into() {
+pub fn daylight_cycle(mut query: Query<(&mut Transform, &mut DirectionalLight), With<Sun>>) {
+    if let Ok((mut light_trans, mut directional)) = query.get_single_mut() {
         let t = Transform::from_xyz(0.0, 0.0, 0.0).looking_to(Vec3::new(0.6, -1.0, 0.6), Vec3::Y);
         light_trans.rotation = t.rotation;
         directional.illuminance = 9000.0;

@@ -10,7 +10,6 @@ mod utils;
 
 use add_break_blocks::*;
 use bevy::{prelude::*, window::PrimaryWindow};
-use bevy_atmosphere::prelude::*;
 use bevy_meshem::prelude::*;
 use block_reg::*;
 use chunk::*;
@@ -57,7 +56,7 @@ fn main() {
                     mode: bevy::window::WindowMode::BorderlessFullscreen,
                     ..Default::default()}),..Default::default()}),
 
-        AtmospherePlugin,
+        // AtmospherePlugin,
         PlayerPlugin,
         ChunkPlugin,
         InventoryPlugin,
@@ -72,21 +71,19 @@ fn main() {
         .insert_resource(CycleTimer(Timer::new(
                 bevy::utils::Duration::from_millis(50),
                 TimerMode::Repeating,)))
-        .insert_resource(GlobalSecondsCounter(0))
-        .insert_resource(AtmosphereModel::default());
+        .insert_resource(GlobalSecondsCounter(0));
+        // .insert_resource(AtmosphereModel::default());
 
     // Events
     app.add_event::<BlockChange>();
 
     // Systems
     app.add_systems(PostStartup, setup)
-        .add_systems(
-            PostUpdate, (daylight_cycle).run_if(in_state(InitialChunkLoadState::Complete)),)
         .add_systems(OnEnter(InitialChunkLoadState::Complete), setup_light)
         .add_systems(Update,
             check_if_loaded.run_if(in_state(InitialChunkLoadState::MeshesLoaded)),)
         .add_systems(Update,(handle_tasks, add_break_detector, /* debug_cage */),)
-        .add_systems(PostUpdate, (handle_block_break_place, update_seconds));
+        .add_systems(PostUpdate, (handle_block_break_place, update_seconds, daylight_cycle));
 
     app.run();
 }
@@ -228,7 +225,7 @@ fn handle_block_break_place(
     breg: Res<BlockRegistry>,
 ) {
     let breg = breg.into_inner();
-    for event in block_change.iter() {
+    for event in block_change.read() {
         'A: for &(chunk, block, onto) in event.blocks.iter() {
             let ent = chunk_map.get_ent(chunk).expect(
                 "Chunk should be loaded into internal data structure `ChunkMap` but it isn't.",

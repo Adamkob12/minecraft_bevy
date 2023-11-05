@@ -1,6 +1,5 @@
 pub mod movement;
 #[allow(unused_imports)]
-use crate::utils::{one_d_cords, position_to_chunk};
 use crate::*;
 use bevy::ecs::event::{Events, ManualEventReader};
 use bevy::input::mouse::MouseMotion;
