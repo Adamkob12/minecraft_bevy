@@ -1,5 +1,5 @@
 # Minecraft with Bevy
-## After Bevy 0.12 and [Bevy Meshem](https://github.com/Adamkob12/minecraft_bevy.git) 0.3 update, Final version.
+## After Bevy 0.12 and [Bevy Meshem](https://github.com/Adamkob12/bevy_meshem) 0.3 update, Final version.
 ![Screenshot 2023-11-05 at 16 41 53](https://github.com/Adamkob12/minecraft_bevy/assets/46227443/7c91ff54-218c-44fc-acea-c1cb03b4438b)
 
 ### You're welcome to take a look!
