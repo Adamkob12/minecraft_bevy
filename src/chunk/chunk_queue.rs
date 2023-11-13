@@ -134,11 +134,11 @@ impl ChunkQueue {
                             &grid,
                             &*breg,
                             MeshingAlgorithm::Culling,
-                            Some(PbsParameters {
-                                pbs_value: 0.4,
-                                min: 0.2,
-                                smoothing: PbsSmoothing::Low,
-                            }),
+                            Some(SmoothLightingParameters {
+                                intensity: 0.5,
+                                max: 0.7,
+                                smoothing: 1.5,
+                                apply_at_gen: true }),
                         )?;
                         Some((t, grid, cords))
                     });
