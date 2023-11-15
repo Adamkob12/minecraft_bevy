@@ -64,10 +64,10 @@ fn main() {
 
     // Resources
     app
-
+        .insert_resource(ClearColor(Color::rgb(0.70, 0.95, 1.0)))
         .init_resource::<BlockRegistry>()
         .insert_resource(AmbientLight {
-                brightness: 0.75, color: Color::ANTIQUE_WHITE})
+                brightness: 1.25, color: Color::ANTIQUE_WHITE})
         .insert_resource(CycleTimer(Timer::new(
                 bevy::utils::Duration::from_millis(50),
                 TimerMode::Repeating,)))

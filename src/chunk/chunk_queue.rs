@@ -138,7 +138,8 @@ impl ChunkQueue {
                                 intensity: 0.5,
                                 max: 0.7,
                                 smoothing: 1.5,
-                                apply_at_gen: true }),
+                                apply_at_gen: true,
+                            }),
                         )?;
                         Some((t, grid, cords))
                     });
