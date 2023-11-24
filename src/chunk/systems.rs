@@ -133,10 +133,10 @@ pub(crate) fn cull_sides_of_mesh(
                 let adj_chunk_grid = { chunks_query.get(adj_chunk).unwrap().grid };
                 for svox in iter_faces_of_chunk(dims, face) {
                     let adj_voxel_ind = match face {
-                        Right => svox - WIDTH + 1,
-                        Left => svox + WIDTH - 1,
-                        Back => svox - WIDTH * (LENGTH - 1),
-                        Forward => svox + WIDTH * (LENGTH - 1),
+                        Right => if svox < WIDTH {1} else {(svox - WIDTH) + 1},
+                        Left => (svox + WIDTH) - 1,
+                        Back => svox - (WIDTH * (LENGTH - 1)),
+                        Forward => svox + (WIDTH * (LENGTH - 1)),
                         _ => panic!("Shouldn't happen"),
                     };
 
