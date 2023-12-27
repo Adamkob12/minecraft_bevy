@@ -1,4 +1,14 @@
-# Minecraft with Bevy
+# Minecraft with Bevy (Check out the re-iteration: [NovaCraft](https://github.com/Adamkob12/NovaCraft.git))
+
+/
+/
+/
+
+## Archived in favour of [NovaCraft](https://github.com/Adamkob12/NovaCraft.git), a more recent, well organized, stabler iteration of the project.
+/
+/
+/
+
 ## After Bevy 0.12 and [Bevy Meshem](https://github.com/Adamkob12/bevy_meshem) 0.3 update, Final version.
 ![Screenshot 2023-11-05 at 16 41 53](https://github.com/Adamkob12/minecraft_bevy/assets/46227443/7c91ff54-218c-44fc-acea-c1cb03b4438b)
 
